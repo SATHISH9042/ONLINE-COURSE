@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { AdminStudentsController } from '../controllers/admin.students.controller';
 import { AdminCourseController } from '../controllers/admin.course.controller';
 import { AdminPaymentController } from '../controllers/admin.payment.controller';
+import { LiveClassController } from '../controllers/liveClass.controller';
 import { authenticateToken, requireActive, requireRole } from '../middleware/auth.middleware';
 
 const router = Router();
@@ -62,5 +63,13 @@ router.delete('/mcqs/:id', AdminCourseController.deleteMcqQuestion);
 router.get('/payments', AdminPaymentController.listPayments);
 router.post('/payments/:id/verify-qr', AdminPaymentController.verifyQrPayment);
 router.post('/payments/:id/reject', AdminPaymentController.rejectPayment);
+
+// Section 28: Live Classes & Recordings Management
+router.get('/live-classes', LiveClassController.listAdminLiveClasses);
+router.post('/live-classes', LiveClassController.createLiveClass);
+router.patch('/live-classes/:id', LiveClassController.updateLiveClass);
+router.delete('/live-classes/:id', LiveClassController.deleteLiveClass);
+router.post('/live-classes/:id/recordings', LiveClassController.addRecording);
+router.delete('/recordings/:id', LiveClassController.deleteRecording);
 
 export default router;

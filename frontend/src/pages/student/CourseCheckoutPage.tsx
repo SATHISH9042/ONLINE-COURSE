@@ -277,11 +277,10 @@ export const CourseCheckoutPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setPaymentMethod('razorpay')}
-                className={`p-3.5 rounded-xl border text-left transition flex flex-col justify-between ${
-                  paymentMethod === 'razorpay'
+                className={`p-3.5 rounded-xl border text-left transition flex flex-col justify-between ${paymentMethod === 'razorpay'
                     ? 'border-brand-600 bg-brand-50/50 shadow-xs'
                     : 'border-slate-200 hover:border-slate-300'
-                }`}
+                  }`}
               >
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
@@ -299,11 +298,10 @@ export const CourseCheckoutPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setPaymentMethod('qr')}
-                className={`p-3.5 rounded-xl border text-left transition flex flex-col justify-between ${
-                  paymentMethod === 'qr'
+                className={`p-3.5 rounded-xl border text-left transition flex flex-col justify-between ${paymentMethod === 'qr'
                     ? 'border-brand-600 bg-brand-50/50 shadow-xs'
                     : 'border-slate-200 hover:border-slate-300'
-                }`}
+                  }`}
               >
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">

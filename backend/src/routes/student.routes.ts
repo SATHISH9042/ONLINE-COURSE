@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { StudentDashboardController } from '../controllers/student.dashboard.controller';
+import { LiveClassController } from '../controllers/liveClass.controller';
 import { authenticateToken, requireActive, requireRole } from '../middleware/auth.middleware';
 
 const router = Router();
@@ -24,5 +25,8 @@ router.get('/catalog', StudentDashboardController.getCourseCatalog);
 // Section 23: Student Profile
 router.get('/profile', StudentDashboardController.getProfile);
 router.put('/profile', StudentDashboardController.updateProfile);
+
+// Section 18: Live Classes & Recordings
+router.get('/live-classes', LiveClassController.getStudentLiveClasses);
 
 export default router;

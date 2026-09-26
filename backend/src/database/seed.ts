@@ -378,6 +378,72 @@ export async function seedDatabase() {
     }
   }
 
+  // ---------------------------------------------------------------------------
+  // 5. Seed Live Classes & Recordings (Phase 6)
+  // ---------------------------------------------------------------------------
+  const courseRes = await db.query('SELECT id FROM courses LIMIT 1');
+  const courseId = courseRes.rowCount > 0 ? courseRes.rows[0].id : null;
+  const now = new Date();
+
+  // 1. LIVE now session if not present
+  const liveRes = await db.query("SELECT COUNT(*) as count FROM live_classes WHERE status = 'LIVE'");
+  if (parseInt(liveRes.rows[0].count, 10) === 0) {
+    const liveStart = new Date(now.getTime() - 25 * 60 * 1000).toISOString();
+    const liveEnd = new Date(now.getTime() + 65 * 60 * 1000).toISOString();
+    await db.query(
+      `INSERT INTO live_classes (
+         course_id, instructor_name, title, description, start_time, end_time, meeting_link, status, max_participants
+       )
+       VALUES ($1, 'Dr. Aris Thorne', 'Live Workshop: Real-Time Event Driven Architectures',
+               'Interactive live architectural coding session building event streams with Kafka and WebSockets.',
+               $2, $3, 'https://meet.google.com/xyz-live-arch', 'LIVE', 300)`,
+      [courseId, liveStart, liveEnd]
+    );
+    console.log('[Seed] Live class with status LIVE created.');
+  }
+
+  // 2. UPCOMING session tomorrow if none
+  const upcomingRes = await db.query("SELECT COUNT(*) as count FROM live_classes WHERE status = 'UPCOMING'");
+  if (parseInt(upcomingRes.rows[0].count, 10) === 0) {
+    const upcomingStart = new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString();
+    const upcomingEnd = new Date(now.getTime() + 26 * 60 * 60 * 1000).toISOString();
+    await db.query(
+      `INSERT INTO live_classes (
+         course_id, instructor_name, title, description, start_time, end_time, meeting_link, status, max_participants
+       )
+       VALUES ($1, 'Prof. Elena Rostova', 'Database Indexing & PostgreSQL Performance Tuning',
+               'Master B-Trees, GiST, query plan profiling with EXPLAIN ANALYZE, and connection pooling.',
+               $2, $3, 'https://meet.google.com/db-perf-tune', 'UPCOMING', 250)`,
+      [courseId, upcomingStart, upcomingEnd]
+    );
+    console.log('[Seed] Upcoming live class created.');
+  }
+
+  // 3. COMPLETED session with recording if none
+  const recsRes = await db.query('SELECT COUNT(*) as count FROM live_class_recordings');
+  if (parseInt(recsRes.rows[0].count, 10) === 0) {
+    const pastStart = new Date(now.getTime() - 48 * 60 * 60 * 1000).toISOString();
+    const pastEnd = new Date(now.getTime() - 46 * 60 * 60 * 1000).toISOString();
+    const completedClass = await db.query(
+      `INSERT INTO live_classes (
+         course_id, instructor_name, title, description, start_time, end_time, meeting_link, status, max_participants
+       )
+       VALUES ($1, 'Prof. Elena Rostova', 'Full-Stack Security & OAuth2 Best Practices',
+               'Deep-dive into token rotations, CSRF mitigation, PKCE flow, and zero-trust authentication.',
+               $2, $3, 'https://meet.google.com/oauth2-live', 'COMPLETED', 200)
+       RETURNING id`,
+      [courseId, pastStart, pastEnd]
+    );
+
+    await db.query(
+      `INSERT INTO live_class_recordings (live_class_id, title, storage_provider, storage_key, duration_seconds)
+       VALUES ($1, 'Recording: OAuth2 Deep Dive & Security Architecture', 's3', 'recordings/oauth2-masterclass.mp4', 5040)`,
+      [completedClass.rows[0].id]
+    );
+
+    console.log('[Seed] Completed Live Class with recorded session created.');
+  }
+
   console.log('[Seed] Database seeding completed successfully.');
 }
 

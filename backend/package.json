@@ -7,7 +7,7 @@
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
-    "test": "tsx src/tests/phase1.test.ts && tsx src/tests/phase2.test.ts && tsx src/tests/phase3.test.ts && tsx src/tests/phase4.test.ts && tsx src/tests/phase5.test.ts",
+    "test": "tsx src/tests/phase1.test.ts && tsx src/tests/phase2.test.ts && tsx src/tests/phase3.test.ts && tsx src/tests/phase4.test.ts && tsx src/tests/phase5.test.ts && tsx src/tests/phase6.test.ts",
     "migrate": "tsx src/database/migrate.ts",
     "seed": "tsx src/database/seed.ts"
   },

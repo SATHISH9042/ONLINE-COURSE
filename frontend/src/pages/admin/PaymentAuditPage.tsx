@@ -128,11 +128,10 @@ export const PaymentAuditPage: React.FC = () => {
 
       {feedback && (
         <div
-          className={`p-4 rounded-xl text-xs font-semibold flex items-center justify-between border ${
-            feedback.type === 'success'
+          className={`p-4 rounded-xl text-xs font-semibold flex items-center justify-between border ${feedback.type === 'success'
               ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
               : 'bg-rose-50 text-rose-800 border-rose-200'
-          }`}
+            }`}
         >
           <span>{feedback.message}</span>
           <button onClick={() => setFeedback(null)} className="text-slate-400 hover:text-slate-600">
@@ -238,11 +237,10 @@ export const PaymentAuditPage: React.FC = () => {
                       {/* Payment Method */}
                       <td className="py-3.5 px-4">
                         <span
-                          className={`inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold ${
-                            p.paymentMethod === 'RAZORPAY'
+                          className={`inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold ${p.paymentMethod === 'RAZORPAY'
                               ? 'bg-blue-50 text-blue-700 border border-blue-200'
                               : 'bg-purple-50 text-purple-700 border border-purple-200'
-                          }`}
+                            }`}
                         >
                           {p.paymentMethod === 'RAZORPAY' ? (
                             <>
@@ -264,13 +262,12 @@ export const PaymentAuditPage: React.FC = () => {
                       {/* Status */}
                       <td className="py-3.5 px-4">
                         <span
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider ${
-                            p.status === 'SUCCESS' || p.status === 'MANUALLY_VERIFIED'
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider ${p.status === 'SUCCESS' || p.status === 'MANUALLY_VERIFIED'
                               ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                               : p.status === 'PENDING'
-                              ? 'bg-amber-50 text-amber-700 border border-amber-200'
-                              : 'bg-rose-50 text-rose-700 border border-rose-200'
-                          }`}
+                                ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                                : 'bg-rose-50 text-rose-700 border border-rose-200'
+                            }`}
                         >
                           {p.status === 'MANUALLY_VERIFIED' ? 'Verified' : p.status}
                         </span>

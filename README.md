@@ -31,6 +31,8 @@ A high-performance, secure, and production-grade web-based Learning Management S
 
 ## 1. System Architecture Overview
 
+![Apex Institute LMS System Architecture](docs/assets/lms_architecture_diagram.jpg)
+
 The platform is designed around a multi-tier, decoupled architecture with strict layer isolation:
 
 ```mermaid

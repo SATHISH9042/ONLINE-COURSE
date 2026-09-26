@@ -3,6 +3,7 @@ import { AdminStudentsController } from '../controllers/admin.students.controlle
 import { AdminCourseController } from '../controllers/admin.course.controller';
 import { AdminPaymentController } from '../controllers/admin.payment.controller';
 import { LiveClassController } from '../controllers/liveClass.controller';
+import { NotificationController } from '../controllers/notification.controller';
 import { authenticateToken, requireActive, requireRole } from '../middleware/auth.middleware';
 
 const router = Router();
@@ -71,5 +72,10 @@ router.patch('/live-classes/:id', LiveClassController.updateLiveClass);
 router.delete('/live-classes/:id', LiveClassController.deleteLiveClass);
 router.post('/live-classes/:id/recordings', LiveClassController.addRecording);
 router.delete('/recordings/:id', LiveClassController.deleteRecording);
+
+// Section 29: Notifications Broadcast Management
+router.get('/notifications', NotificationController.listAdminNotifications);
+router.post('/notifications', NotificationController.sendBroadcast);
+router.delete('/notifications/:id', NotificationController.deleteNotification);
 
 export default router;

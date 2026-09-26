@@ -17,11 +17,13 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { StatusBadge } from '../components/common/Badge';
+import { notificationService } from '../services/notificationService';
 
 export const StudentLayout: React.FC = () => {
   const { user, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const location = useLocation();
@@ -36,6 +38,11 @@ export const StudentLayout: React.FC = () => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Fetch unread notifications count on route change
+  useEffect(() => {
+    notificationService.getUnreadCount().then(setUnreadCount).catch(() => {});
+  }, [location.pathname]);
 
   // Close mobile sidebar on route change
   useEffect(() => {
@@ -53,7 +60,7 @@ export const StudentLayout: React.FC = () => {
     { label: 'My Courses', path: '/student/my-courses', icon: BookOpen },
     { label: 'Browse Courses', path: '/student/browse', icon: Compass },
     { label: 'Live Classes', path: '/student/live-classes', icon: Video },
-    { label: 'Notifications', path: '/student/notifications', icon: Bell },
+    { label: 'Notifications', path: '/student/notifications', icon: Bell, badge: unreadCount > 0 ? unreadCount : undefined },
   ];
 
   return (
@@ -95,7 +102,11 @@ export const StudentLayout: React.FC = () => {
                 title="Notifications"
               >
                 <Bell className="w-5 h-5" />
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-brand-600 ring-2 ring-white"></span>
+                {unreadCount > 0 && (
+                  <span className="absolute top-1.5 right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-red-600 text-white text-[10px] font-black flex items-center justify-center ring-2 ring-white">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
               </NavLink>
 
               {/* Profile Menu Dropdown */}
@@ -190,6 +201,11 @@ export const StudentLayout: React.FC = () => {
                 >
                   <Icon className="w-5 h-5 mr-3 shrink-0" />
                   <span>{item.label}</span>
+                  {item.badge !== undefined && (
+                    <span className="ml-auto px-2 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-700">
+                      {item.badge}
+                    </span>
+                  )}
                 </NavLink>
               );
             })}
@@ -247,6 +263,11 @@ export const StudentLayout: React.FC = () => {
                     >
                       <Icon className="w-5 h-5 mr-3 shrink-0" />
                       <span>{item.label}</span>
+                      {item.badge !== undefined && (
+                        <span className="ml-auto px-2 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-700">
+                          {item.badge}
+                        </span>
+                      )}
                     </NavLink>
                   );
                 })}

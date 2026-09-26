@@ -21,6 +21,7 @@ import { CourseLearningPage } from './pages/learning/CourseLearningPage';
 import { CourseCheckoutPage } from './pages/student/CourseCheckoutPage';
 import { PaymentAuditPage } from './pages/admin/PaymentAuditPage';
 import { LiveClassesAdminPage } from './pages/admin/LiveClassesAdminPage';
+import { NotificationsAdminPage } from './pages/admin/NotificationsAdminPage';
 
 // Protected route guard for Admin
 const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -163,6 +164,14 @@ export const App: React.FC = () => {
             element={
               <AdminRoute>
                 <LiveClassesAdminPage />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/notifications"
+            element={
+              <AdminRoute>
+                <NotificationsAdminPage />
               </AdminRoute>
             }
           />

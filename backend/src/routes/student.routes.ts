@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { StudentDashboardController } from '../controllers/student.dashboard.controller';
 import { LiveClassController } from '../controllers/liveClass.controller';
+import { NotificationController } from '../controllers/notification.controller';
 import { authenticateToken, requireActive, requireRole } from '../middleware/auth.middleware';
 
 const router = Router();
@@ -28,5 +29,11 @@ router.put('/profile', StudentDashboardController.updateProfile);
 
 // Section 18: Live Classes & Recordings
 router.get('/live-classes', LiveClassController.getStudentLiveClasses);
+
+// Section 19: Notifications Center
+router.get('/notifications', NotificationController.getStudentNotifications);
+router.get('/notifications/unread-count', NotificationController.getUnreadCount);
+router.patch('/notifications/mark-all-read', NotificationController.markAllAsRead);
+router.patch('/notifications/:id/read', NotificationController.markAsRead);
 
 export default router;

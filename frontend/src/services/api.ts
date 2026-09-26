@@ -1,6 +1,8 @@
 import { ApiResponse } from '../types';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5001/api/v1';
+const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+export const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || (isLocal ? 'http://localhost:5001' : 'https://online-course-47df.onrender.com');
+export const API_BASE = import.meta.env.VITE_API_URL || `${BACKEND_URL}/api/v1`;
 
 class ApiClient {
   private getAuthHeader(): Record<string, string> {

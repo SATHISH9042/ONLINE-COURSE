@@ -8,6 +8,7 @@ import {
   McqSubmitResult,
   CurriculumTopic,
 } from '../../services/learningService';
+import { BACKEND_URL } from '../../services/api';
 import {
   ArrowLeft,
   CheckCircle2,
@@ -569,7 +570,13 @@ export const CourseLearningPage: React.FC = () => {
                       <div className="relative aspect-video bg-black rounded-2xl overflow-hidden border border-slate-800 shadow-2xl">
                         <video
                           ref={videoRef}
-                          src={vid.streamUrl ? `http://localhost:5001${vid.streamUrl}` : ''}
+                          src={
+                            vid.streamUrl
+                              ? vid.streamUrl.startsWith('http')
+                                ? vid.streamUrl
+                                : `${BACKEND_URL}${vid.streamUrl}`
+                              : ''
+                          }
                           controls
                           onTimeUpdate={handleTimeUpdate}
                           onPause={syncVideoProgress}

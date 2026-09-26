@@ -85,13 +85,50 @@ const authLimiter = rateLimit({
   },
 });
 
-// Health check endpoint
+// Liveness health check probe (orchestrator heartbeat)
 app.get('/health', (req, res) => {
   res.status(200).json({
     status: 'healthy',
+    state: 'UP',
+    uptime: Math.round(process.uptime()),
     timestamp: new Date().toISOString(),
     environment: config.nodeEnv,
+    version: '1.0.0',
   });
+});
+
+// Readiness probe (verifies database connectivity and infrastructure health)
+import { db } from './database/db';
+app.get('/ready', async (req, res) => {
+  try {
+    const dbStart = Date.now();
+    await db.query('SELECT 1');
+    const dbLatencyMs = Date.now() - dbStart;
+    const mem = process.memoryUsage();
+
+    res.status(200).json({
+      status: 'READY',
+      checks: {
+        database: {
+          status: 'CONNECTED',
+          latencyMs: dbLatencyMs,
+        },
+        memory: {
+          heapUsedMB: Math.round(mem.heapUsed / 1024 / 1024),
+          rssMB: Math.round(mem.rss / 1024 / 1024),
+        },
+      },
+      uptime: Math.round(process.uptime()),
+      timestamp: new Date().toISOString(),
+    });
+  } catch (err: any) {
+    res.status(503).json({
+      status: 'UNAVAILABLE',
+      error: 'DATABASE_DISCONNECTED',
+      message: err.message,
+      timestamp: new Date().toISOString(),
+    });
+  }
 });
 
 // API Routes

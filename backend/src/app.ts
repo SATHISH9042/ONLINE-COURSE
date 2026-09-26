@@ -85,6 +85,21 @@ const authLimiter = rateLimit({
   },
 });
 
+// API Root Welcome
+app.get('/', (req, res) => {
+  res.status(200).json({
+    name: 'Apex Institute Learning Management Platform (LMS) - API Backend',
+    version: '1.0.0',
+    status: 'ACTIVE',
+    frontend: 'https://sathish9042.github.io/ONLINE-COURSE/',
+    endpoints: {
+      health: '/health',
+      ready: '/ready',
+      api: '/api/v1',
+    },
+  });
+});
+
 // Liveness health check probe (orchestrator heartbeat)
 app.get('/health', (req, res) => {
   res.status(200).json({

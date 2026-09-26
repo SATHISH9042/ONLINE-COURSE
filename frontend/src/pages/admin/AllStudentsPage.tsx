@@ -161,22 +161,30 @@ export const AllStudentsPage: React.FC = () => {
                       <StatusBadge status={s.status} />
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
-                      {s.status === 'ACTIVE' && (
-                        <button
-                          onClick={() => handleToggleSuspend(s)}
-                          className="px-2.5 py-1 text-xs font-medium text-slate-600 hover:text-slate-900 border border-slate-300 rounded hover:bg-slate-100"
+                      <div className="flex items-center justify-end space-x-2">
+                        <Link
+                          to={`/admin/students/${s.id}/progress`}
+                          className="px-2.5 py-1 text-xs font-semibold text-brand-700 bg-brand-50 border border-brand-200 rounded hover:bg-brand-100 transition-colors"
                         >
-                          Suspend
-                        </button>
-                      )}
-                      {s.status === 'SUSPENDED' && (
-                        <button
-                          onClick={() => handleToggleSuspend(s)}
-                          className="px-2.5 py-1 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-300 rounded hover:bg-emerald-100"
-                        >
-                          Reactivate
-                        </button>
-                      )}
+                          View Progress
+                        </Link>
+                        {s.status === 'ACTIVE' && (
+                          <button
+                            onClick={() => handleToggleSuspend(s)}
+                            className="px-2.5 py-1 text-xs font-medium text-slate-600 hover:text-slate-900 border border-slate-300 rounded hover:bg-slate-100"
+                          >
+                            Suspend
+                          </button>
+                        )}
+                        {s.status === 'SUSPENDED' && (
+                          <button
+                            onClick={() => handleToggleSuspend(s)}
+                            className="px-2.5 py-1 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-300 rounded hover:bg-emerald-100"
+                          >
+                            Reactivate
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}

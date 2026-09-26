@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { GraduationCap, LogOut, User as UserIcon, Shield, Users, Clock, BookOpen, CreditCard, Video, Bell } from 'lucide-react';
+import { GraduationCap, LogOut, User as UserIcon, Shield, Users, Clock, BookOpen, CreditCard, Video, Bell, LayoutDashboard, Activity } from 'lucide-react';
 import { StatusBadge } from './Badge';
 
 export const Navbar: React.FC = () => {
@@ -39,6 +39,13 @@ export const Navbar: React.FC = () => {
             <nav className="hidden md:flex items-center space-x-1">
               {user.role === 'ADMIN' ? (
                 <>
+                  <Link
+                    to="/admin/dashboard"
+                    className="flex items-center space-x-1.5 px-3 py-2 rounded-lg text-sm font-medium text-slate-700 hover:text-brand-600 hover:bg-slate-50"
+                  >
+                    <LayoutDashboard className="w-4 h-4 text-brand-600" />
+                    <span>Dashboard</span>
+                  </Link>
                   <Link
                     to="/admin/courses"
                     className="flex items-center space-x-1.5 px-3 py-2 rounded-lg text-sm font-medium text-slate-700 hover:text-brand-600 hover:bg-slate-50"
@@ -80,6 +87,13 @@ export const Navbar: React.FC = () => {
                   >
                     <Bell className="w-4 h-4 text-amber-600" />
                     <span>Broadcasts</span>
+                  </Link>
+                  <Link
+                    to="/admin/audit-logs"
+                    className="flex items-center space-x-1.5 px-3 py-2 rounded-lg text-sm font-medium text-slate-700 hover:text-brand-600 hover:bg-slate-50"
+                  >
+                    <Activity className="w-4 h-4 text-indigo-600" />
+                    <span>Audit Logs</span>
                   </Link>
                 </>
               ) : (

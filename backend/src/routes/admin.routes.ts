@@ -4,6 +4,7 @@ import { AdminCourseController } from '../controllers/admin.course.controller';
 import { AdminPaymentController } from '../controllers/admin.payment.controller';
 import { LiveClassController } from '../controllers/liveClass.controller';
 import { NotificationController } from '../controllers/notification.controller';
+import { AdminAnalyticsController } from '../controllers/admin.analytics.controller';
 import { authenticateToken, requireActive, requireRole } from '../middleware/auth.middleware';
 
 const router = Router();
@@ -77,5 +78,15 @@ router.delete('/recordings/:id', LiveClassController.deleteRecording);
 router.get('/notifications', NotificationController.listAdminNotifications);
 router.post('/notifications', NotificationController.sendBroadcast);
 router.delete('/notifications/:id', NotificationController.deleteNotification);
+
+// Section 25: Master Dashboard Analytics Overview
+router.get('/analytics/overview', AdminAnalyticsController.getAnalyticsOverview);
+
+// Section 32: Student Progress Monitoring & Course Engagement
+router.get('/students/:id/progress', AdminAnalyticsController.getStudentProgress);
+router.get('/courses/:id/engagement', AdminAnalyticsController.getCourseEngagement);
+
+// Section 33: Comprehensive Audit Logs Viewer
+router.get('/audit-logs', AdminAnalyticsController.getAuditLogs);
 
 export default router;

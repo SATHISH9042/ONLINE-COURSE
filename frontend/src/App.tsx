@@ -22,6 +22,9 @@ import { CourseCheckoutPage } from './pages/student/CourseCheckoutPage';
 import { PaymentAuditPage } from './pages/admin/PaymentAuditPage';
 import { LiveClassesAdminPage } from './pages/admin/LiveClassesAdminPage';
 import { NotificationsAdminPage } from './pages/admin/NotificationsAdminPage';
+import { AdminDashboardOverviewPage } from './pages/admin/AdminDashboardOverviewPage';
+import { StudentProgressDetailPage } from './pages/admin/StudentProgressDetailPage';
+import { AuditLogsPage } from './pages/admin/AuditLogsPage';
 
 // Protected route guard for Admin
 const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -72,7 +75,7 @@ const StudentRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => 
   }
 
   if (user.role === 'ADMIN') {
-    return <Navigate to="/admin/pending-students" replace />;
+    return <Navigate to="/admin/dashboard" replace />;
   }
 
   return <>{children}</>;
@@ -95,7 +98,7 @@ const RootRedirect: React.FC = () => {
   }
 
   if (user.role === 'ADMIN') {
-    return <Navigate to="/admin/pending-students" replace />;
+    return <Navigate to="/admin/dashboard" replace />;
   }
 
   if (user.status === 'PENDING_APPROVAL') {
@@ -164,6 +167,31 @@ export const App: React.FC = () => {
             element={
               <AdminRoute>
                 <LiveClassesAdminPage />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/dashboard"
+            element={
+              <AdminRoute>
+                <AdminDashboardOverviewPage />
+              </AdminRoute>
+            }
+          />
+          <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+          <Route
+            path="/admin/students/:id/progress"
+            element={
+              <AdminRoute>
+                <StudentProgressDetailPage />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/audit-logs"
+            element={
+              <AdminRoute>
+                <AuditLogsPage />
               </AdminRoute>
             }
           />

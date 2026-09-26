@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { studentService, EnrolledCourseItem } from '../../services/studentService';
 import { BookOpen, Play, CheckCircle2, Clock, RefreshCw, ArrowRight, Layers } from 'lucide-react';
 
 export const MyCoursesPage: React.FC = () => {
+  const navigate = useNavigate();
   const [courses, setCourses] = useState<EnrolledCourseItem[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -132,7 +133,7 @@ export const MyCoursesPage: React.FC = () => {
                   {/* Continue Button */}
                   <div className="pt-2">
                     <button
-                      onClick={() => alert(`Starting Course: ${course.title}\n(Learning Player will open in Phase 4)`)}
+                      onClick={() => navigate(`/student/courses/${course.id}/learn`)}
                       className="w-full flex items-center justify-center py-2.5 px-4 rounded-xl text-xs font-bold text-white bg-slate-900 hover:bg-brand-600 transition-colors shadow-sm"
                     >
                       <Play className="w-3.5 h-3.5 mr-1.5 fill-current" />

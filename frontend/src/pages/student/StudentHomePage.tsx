@@ -121,7 +121,7 @@ export const StudentHomePage: React.FC = () => {
 
             <div className="flex sm:shrink-0 items-center">
               <Link
-                to={`/student/my-courses`}
+                to={`/student/courses/${continueItem.courseId}/learn`}
                 className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3.5 rounded-2xl text-sm font-bold text-slate-900 bg-brand-400 hover:bg-brand-300 shadow-lg shadow-brand-400/25 transition-all hover:scale-[1.02] active:scale-[0.98]"
               >
                 <Play className="w-4 h-4 mr-2 fill-current" />
@@ -255,7 +255,7 @@ export const StudentHomePage: React.FC = () => {
                 </div>
 
                 <Link
-                  to="/student/my-courses"
+                  to={`/student/courses/${c.id}/learn`}
                   className="w-full sm:w-auto px-4 py-2 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-brand-50 hover:text-brand-700 transition-colors shrink-0 text-center"
                 >
                   Continue

@@ -296,6 +296,88 @@ export async function seedDatabase() {
     console.log('[Seed] Sample FAQs created.');
   }
 
+  // 5. Seed learning content (Videos, Coding Problems, MCQs) for first course if none exist
+  const subtopics = await db.query(
+    `SELECT cs.id, cs.title FROM course_subtopics cs ORDER BY cs.sort_order ASC`
+  );
+  if (subtopics.rowCount > 0) {
+    const st1 = subtopics.rows[0].id;
+    const st1VideoCheck = await db.query('SELECT COUNT(*) AS count FROM videos WHERE subtopic_id = $1', [st1]);
+    if (parseInt(st1VideoCheck.rows[0].count, 10) === 0) {
+      // Video
+      await db.query(
+        `INSERT INTO videos (subtopic_id, title, description, storage_provider, storage_key, duration_seconds, sort_order)
+         VALUES ($1, 'Deep Dive into Execution Contexts & Memory', 'Master the JavaScript call stack, execution context phases, and memory allocation.', 's3', 'courses/js/context.mp4', 1080, 1)`,
+        [st1]
+      );
+
+      // Coding Problem
+      const cp1 = await db.query(
+        `INSERT INTO coding_problems (subtopic_id, title, description, input_format, output_format, constraints, default_code, allowed_languages, time_limit_ms, memory_limit_mb, sort_order)
+         VALUES ($1, 'Sum of Array Numbers', 'Given an array of integers encoded in input string, calculate and print the sum of all elements.', 'Space-separated integers: e.g. "1 2 3 4 5"', 'Single integer sum: e.g. 15', '1 <= N <= 10^5, -10^9 <= A[i] <= 10^9', $2, ARRAY['javascript', 'python'], 2000, 128, 1)
+         RETURNING id`,
+        [
+          st1,
+          JSON.stringify({
+            javascript: '// Use input (string) to process input data\nconst numbers = input.trim().split(/\\s+/).map(Number);\nconst sum = numbers.reduce((acc, curr) => acc + curr, 0);\nconsole.log(sum);',
+            python: 'import sys\nraw = sys.stdin.read().strip()\nif raw:\n    nums = [int(x) for x in raw.split()]\n    print(sum(nums))\nelse:\n    print(0)',
+          }),
+        ]
+      );
+
+      const probId1 = cp1.rows[0].id;
+      // Test cases (public and hidden)
+      await db.query(
+        `INSERT INTO coding_test_cases (problem_id, input_data, expected_output, is_hidden, sort_order)
+         VALUES ($1, '1 2 3 4 5', '15', FALSE, 1),
+                ($1, '10 -5 20', '25', FALSE, 2),
+                ($1, '100 200 -50 25', '275', TRUE, 3)`,
+        [probId1]
+      );
+
+      // MCQs
+      const mcq1 = await db.query(
+        `INSERT INTO mcq_questions (subtopic_id, question_text, explanation, points, sort_order)
+         VALUES ($1, 'Which keyword is used to declare a constant in modern JavaScript?', 'The const keyword creates block-scoped constants that cannot be reassigned.', 1, 1)
+         RETURNING id`,
+        [st1]
+      );
+      await db.query(
+        `INSERT INTO mcq_options (question_id, option_text, is_correct, sort_order)
+         VALUES ($1, 'var', FALSE, 1),
+                ($1, 'let', FALSE, 2),
+                ($1, 'const', TRUE, 3),
+                ($1, 'static', FALSE, 4)`,
+        [mcq1.rows[0].id]
+      );
+
+      const mcq2 = await db.query(
+        `INSERT INTO mcq_questions (subtopic_id, question_text, explanation, points, sort_order)
+         VALUES ($1, 'What is the return type of typeof NaN in JavaScript?', 'In JavaScript, NaN (Not-a-Number) is officially typed as a primitive numeric type according to IEEE 754 floating point standard.', 1, 2)
+         RETURNING id`,
+        [st1]
+      );
+      await db.query(
+        `INSERT INTO mcq_options (question_id, option_text, is_correct, sort_order)
+         VALUES ($1, 'undefined', FALSE, 1),
+                ($1, 'number', TRUE, 2),
+                ($1, 'NaN', FALSE, 3),
+                ($1, 'object', FALSE, 4)`,
+        [mcq2.rows[0].id]
+      );
+
+      if (subtopics.rowCount > 1) {
+        const st2 = subtopics.rows[1].id;
+        await db.query(
+          `INSERT INTO videos (subtopic_id, title, description, storage_provider, storage_key, duration_seconds, sort_order)
+           VALUES ($1, 'Mastering JavaScript Closures and Lexical Scope', 'Learn how lexical scoping and memory retention work under the hood.', 's3', 'courses/js/closures.mp4', 1440, 1)`,
+          [st2]
+        );
+      }
+      console.log('[Seed] Sample learning content (videos, coding problems, MCQs) created.');
+    }
+  }
+
   console.log('[Seed] Database seeding completed successfully.');
 }
 

@@ -196,11 +196,10 @@ export const CourseListPage: React.FC = () => {
 
       {feedback && (
         <div
-          className={`p-4 rounded-xl flex items-start ${
-            feedback.type === 'success'
+          className={`p-4 rounded-xl flex items-start ${feedback.type === 'success'
               ? 'bg-emerald-50 border border-emerald-200 text-emerald-900'
               : 'bg-rose-50 border border-rose-200 text-rose-900'
-          }`}
+            }`}
         >
           {feedback.type === 'success' ? (
             <CheckCircle2 className="w-5 h-5 text-emerald-600 mr-2 mt-0.5 shrink-0" />
@@ -265,11 +264,10 @@ export const CourseListPage: React.FC = () => {
                 />
                 <div className="absolute top-3 left-3">
                   <span
-                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                      c.is_published
+                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${c.is_published
                         ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
                         : 'bg-slate-100 text-slate-700 border border-slate-200'
-                    }`}
+                      }`}
                   >
                     {c.is_published ? '● Published' : '○ Draft'}
                   </span>

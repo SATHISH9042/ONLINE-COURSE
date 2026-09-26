@@ -270,11 +270,10 @@ export const CurriculumEditorPage: React.FC = () => {
 
       {feedback && (
         <div
-          className={`p-4 rounded-xl flex items-start ${
-            feedback.type === 'success'
+          className={`p-4 rounded-xl flex items-start ${feedback.type === 'success'
               ? 'bg-emerald-50 border border-emerald-200 text-emerald-900'
               : 'bg-rose-50 border border-rose-200 text-rose-900'
-          }`}
+            }`}
         >
           {feedback.type === 'success' ? (
             <CheckCircle2 className="w-5 h-5 text-emerald-600 mr-2 mt-0.5 shrink-0" />

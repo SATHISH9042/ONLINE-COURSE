@@ -17,6 +17,7 @@ import { LiveClassesPage } from './pages/student/LiveClassesPage';
 import { NotificationsPage } from './pages/student/NotificationsPage';
 import { StudentProfilePage } from './pages/student/StudentProfilePage';
 import { HelpPage } from './pages/student/HelpPage';
+import { CourseLearningPage } from './pages/learning/CourseLearningPage';
 
 // Protected route guard for Admin
 const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -166,6 +167,16 @@ export const App: React.FC = () => {
             <Route path="profile" element={<StudentProfilePage />} />
             <Route path="help" element={<HelpPage />} />
           </Route>
+
+          {/* Section 12-17: Dedicated Course Learning Interface */}
+          <Route
+            path="/student/courses/:courseId/learn"
+            element={
+              <StudentRoute>
+                <CourseLearningPage />
+              </StudentRoute>
+            }
+          />
 
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />

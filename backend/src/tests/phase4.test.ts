@@ -29,7 +29,9 @@ async function runPhase4Tests() {
   const coursesData = await coursesRes.json();
   assert.strictEqual(coursesRes.status, 200);
   assert.ok(coursesData.data.length > 0, 'Student should have at least one enrolled course');
-  const enrolledCourse = coursesData.data[0];
+  const enrolledCourse =
+    coursesData.data.find((c: any) => c.title === 'Full Stack Web Development') ||
+    coursesData.data[0];
   const courseId = enrolledCourse.id;
   console.log(`   ✓ Enrolled course identified: "${enrolledCourse.title}" (ID: ${courseId})`);
 

@@ -18,6 +18,8 @@ import { NotificationsPage } from './pages/student/NotificationsPage';
 import { StudentProfilePage } from './pages/student/StudentProfilePage';
 import { HelpPage } from './pages/student/HelpPage';
 import { CourseLearningPage } from './pages/learning/CourseLearningPage';
+import { CourseCheckoutPage } from './pages/student/CourseCheckoutPage';
+import { PaymentAuditPage } from './pages/admin/PaymentAuditPage';
 
 // Protected route guard for Admin
 const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -147,6 +149,14 @@ export const App: React.FC = () => {
               </AdminRoute>
             }
           />
+          <Route
+            path="/admin/payments"
+            element={
+              <AdminRoute>
+                <PaymentAuditPage />
+              </AdminRoute>
+            }
+          />
 
           {/* SECTION 6: Protected Student Routes under StudentLayout */}
           <Route
@@ -167,6 +177,16 @@ export const App: React.FC = () => {
             <Route path="profile" element={<StudentProfilePage />} />
             <Route path="help" element={<HelpPage />} />
           </Route>
+
+          {/* Section 10: Course Purchase Confirmation & Payment Checkout */}
+          <Route
+            path="/student/courses/:courseId/checkout"
+            element={
+              <StudentRoute>
+                <CourseCheckoutPage />
+              </StudentRoute>
+            }
+          />
 
           {/* Section 12-17: Dedicated Course Learning Interface */}
           <Route

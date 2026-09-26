@@ -14,4 +14,7 @@ export const config = {
   corsOrigin: process.env.CORS_ORIGIN || 'http://localhost:5173',
   bcryptSaltRounds: 12,
   dbDataDir: path.resolve(__dirname, '../../../database/pgdata'),
+  razorpayKeyId: process.env.RAZORPAY_KEY_ID || 'rzp_test_institute_mock_key',
+  razorpayKeySecret: process.env.RAZORPAY_KEY_SECRET || 'rzp_test_secret_mock_secret_2026',
+  razorpayWebhookSecret: process.env.RAZORPAY_WEBHOOK_SECRET || 'rzp_webhook_secret_mock_2026',
 };

@@ -375,4 +375,52 @@ export class StudentDashboardController {
       next(err);
     }
   }
+
+  /**
+   * Section 9: BROWSE COURSES - Institute Course Catalog
+   * Shows all published courses with: thumbnail, title, description, instructor,
+   * duration, topic count, price, and enrollment status (Purchased vs Buy Now).
+   */
+  static async getCourseCatalog(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const studentId = req.user?.id;
+
+      const coursesRes = await db.query(
+        `SELECT c.id, c.title, c.slug, c.short_description, c.description, c.thumbnail_url,
+                c.price, c.currency, c.duration_hours, c.instructor_name, c.is_published,
+                c.created_at,
+                (SELECT COUNT(DISTINCT ct.id) FROM course_topics ct WHERE ct.course_id = c.id) as topic_count,
+                (SELECT COUNT(cs.id) FROM course_subtopics cs JOIN course_topics ct ON ct.id = cs.topic_id WHERE ct.course_id = c.id) as subtopic_count,
+                EXISTS(
+                  SELECT 1 FROM course_enrollments ce
+                  WHERE ce.course_id = c.id AND ce.student_id = $1 AND ce.status = 'ACTIVE'
+                ) as is_enrolled
+         FROM courses c
+         WHERE c.is_published = TRUE AND c.deleted_at IS NULL
+         ORDER BY c.sort_order ASC, c.created_at DESC`,
+        [studentId || null]
+      );
+
+      res.status(200).json({
+        success: true,
+        data: coursesRes.rows.map((row) => ({
+          id: row.id,
+          title: row.title,
+          slug: row.slug,
+          shortDescription: row.short_description,
+          description: row.description,
+          thumbnailUrl: row.thumbnail_url,
+          price: parseFloat(row.price),
+          currency: row.currency,
+          durationHours: row.duration_hours,
+          instructorName: row.instructor_name,
+          topicCount: parseInt(row.topic_count, 10) || 0,
+          subtopicCount: parseInt(row.subtopic_count, 10) || 0,
+          isEnrolled: Boolean(row.is_enrolled),
+        })),
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
 }

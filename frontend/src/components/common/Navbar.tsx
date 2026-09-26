@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { GraduationCap, LogOut, User as UserIcon, Shield, Users, Clock, BookOpen } from 'lucide-react';
+import { GraduationCap, LogOut, User as UserIcon, Shield, Users, Clock, BookOpen, CreditCard } from 'lucide-react';
 import { StatusBadge } from './Badge';
 
 export const Navbar: React.FC = () => {
@@ -59,6 +59,13 @@ export const Navbar: React.FC = () => {
                   >
                     <Users className="w-4 h-4 text-slate-500" />
                     <span>All Students</span>
+                  </Link>
+                  <Link
+                    to="/admin/payments"
+                    className="flex items-center space-x-1.5 px-3 py-2 rounded-lg text-sm font-medium text-slate-700 hover:text-brand-600 hover:bg-slate-50"
+                  >
+                    <CreditCard className="w-4 h-4 text-emerald-600" />
+                    <span>Payments & QR</span>
                   </Link>
                 </>
               ) : (

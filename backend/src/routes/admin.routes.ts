@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { AdminStudentsController } from '../controllers/admin.students.controller';
 import { AdminCourseController } from '../controllers/admin.course.controller';
+import { AdminPaymentController } from '../controllers/admin.payment.controller';
 import { authenticateToken, requireActive, requireRole } from '../middleware/auth.middleware';
 
 const router = Router();
@@ -56,5 +57,10 @@ router.delete('/coding/:id', AdminCourseController.deleteCodingProblem);
 // Learning Content: MCQs
 router.post('/subtopics/:subtopicId/mcqs', AdminCourseController.createMcqQuestion);
 router.delete('/mcqs/:id', AdminCourseController.deleteMcqQuestion);
+
+// Section 11 & 35: Payment Management & Manual QR Verification
+router.get('/payments', AdminPaymentController.listPayments);
+router.post('/payments/:id/verify-qr', AdminPaymentController.verifyQrPayment);
+router.post('/payments/:id/reject', AdminPaymentController.rejectPayment);
 
 export default router;

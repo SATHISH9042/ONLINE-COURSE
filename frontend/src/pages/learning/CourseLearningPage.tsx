@@ -358,11 +358,10 @@ export const CourseLearningPage: React.FC = () => {
 
           <button
             onClick={handleToggleCompletion}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition ${
-              contentBundle?.subtopic.isCompleted
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition ${contentBundle?.subtopic.isCompleted
                 ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
                 : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700'
-            }`}
+              }`}
           >
             {contentBundle?.subtopic.isCompleted ? (
               <>
@@ -390,9 +389,8 @@ export const CourseLearningPage: React.FC = () => {
       <div className="flex-1 flex overflow-hidden relative">
         {/* Left Sidebar: Collapsible Syllabus Tree (Section 12) */}
         <aside
-          className={`fixed lg:static top-16 bottom-0 left-0 w-80 bg-slate-900 border-r border-slate-800 overflow-y-auto transition-transform duration-300 z-20 ${
-            sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-          }`}
+          className={`fixed lg:static top-16 bottom-0 left-0 w-80 bg-slate-900 border-r border-slate-800 overflow-y-auto transition-transform duration-300 z-20 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+            }`}
         >
           <div className="p-4 border-b border-slate-800/80">
             <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
@@ -429,25 +427,22 @@ export const CourseLearningPage: React.FC = () => {
                             setSelectedSubtopicId(subtopic.id);
                             setSidebarOpen(false);
                           }}
-                          className={`w-full px-3 py-2 rounded-lg text-left text-xs flex items-center justify-between transition ${
-                            isSelected
+                          className={`w-full px-3 py-2 rounded-lg text-left text-xs flex items-center justify-between transition ${isSelected
                               ? 'bg-indigo-600 text-white font-medium shadow-md shadow-indigo-600/20'
                               : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
-                          }`}
+                            }`}
                         >
                           <div className="flex items-center gap-2 truncate">
                             {/* Section 15: Subtopic Completion Status */}
                             {subtopic.is_completed ? (
                               <CheckCircle2
-                                className={`w-4 h-4 shrink-0 ${
-                                  isSelected ? 'text-white' : 'text-emerald-400'
-                                }`}
+                                className={`w-4 h-4 shrink-0 ${isSelected ? 'text-white' : 'text-emerald-400'
+                                  }`}
                               />
                             ) : (
                               <Circle
-                                className={`w-4 h-4 shrink-0 ${
-                                  isSelected ? 'text-white/60' : 'text-slate-600'
-                                }`}
+                                className={`w-4 h-4 shrink-0 ${isSelected ? 'text-white/60' : 'text-slate-600'
+                                  }`}
                               />
                             )}
                             <span className="truncate">{subtopic.title}</span>
@@ -532,11 +527,10 @@ export const CourseLearningPage: React.FC = () => {
                   {contentBundle.videos.length > 0 && (
                     <button
                       onClick={() => setActiveTab('video')}
-                      className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition ${
-                        activeTab === 'video'
+                      className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition ${activeTab === 'video'
                           ? 'bg-indigo-600 text-white shadow'
                           : 'bg-slate-800 hover:bg-slate-700 text-slate-400'
-                      }`}
+                        }`}
                     >
                       <PlayCircle className="w-4 h-4" /> Video Lesson
                     </button>
@@ -544,11 +538,10 @@ export const CourseLearningPage: React.FC = () => {
                   {contentBundle.codingProblems.length > 0 && (
                     <button
                       onClick={() => setActiveTab('coding')}
-                      className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition ${
-                        activeTab === 'coding'
+                      className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition ${activeTab === 'coding'
                           ? 'bg-indigo-600 text-white shadow'
                           : 'bg-slate-800 hover:bg-slate-700 text-slate-400'
-                      }`}
+                        }`}
                     >
                       <Code2 className="w-4 h-4" /> Coding Practice
                     </button>
@@ -556,11 +549,10 @@ export const CourseLearningPage: React.FC = () => {
                   {contentBundle.mcqs.length > 0 && (
                     <button
                       onClick={() => setActiveTab('mcq')}
-                      className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition ${
-                        activeTab === 'mcq'
+                      className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition ${activeTab === 'mcq'
                           ? 'bg-indigo-600 text-white shadow'
                           : 'bg-slate-800 hover:bg-slate-700 text-slate-400'
-                      }`}
+                        }`}
                     >
                       <HelpCircle className="w-4 h-4" /> MCQ Assessment
                     </button>
@@ -771,11 +763,10 @@ export const CourseLearningPage: React.FC = () => {
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
                                 <span
-                                  className={`px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider ${
-                                    codeRunResult.status === 'ACCEPTED'
+                                  className={`px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider ${codeRunResult.status === 'ACCEPTED'
                                       ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
                                       : 'bg-rose-500/10 text-rose-400 border border-rose-500/30'
-                                  }`}
+                                    }`}
                                 >
                                   {codeRunResult.status.replace(/_/g, ' ')}
                                 </span>
@@ -794,11 +785,10 @@ export const CourseLearningPage: React.FC = () => {
                               {codeRunResult.results.map((r) => (
                                 <div
                                   key={r.testCaseIndex}
-                                  className={`p-2.5 rounded-lg border text-xs font-mono flex items-center justify-between ${
-                                    r.passed
+                                  className={`p-2.5 rounded-lg border text-xs font-mono flex items-center justify-between ${r.passed
                                       ? 'bg-emerald-950/20 border-emerald-800/40 text-emerald-300'
                                       : 'bg-rose-950/20 border-rose-800/40 text-rose-300'
-                                  }`}
+                                    }`}
                                 >
                                   <div className="flex items-center gap-2">
                                     {r.passed ? (
@@ -862,19 +852,17 @@ export const CourseLearningPage: React.FC = () => {
                                   onClick={() =>
                                     setMcqAnswers((prev) => ({ ...prev, [qId]: opt.id }))
                                   }
-                                  className={`w-full p-3.5 rounded-xl text-left text-sm flex items-center justify-between border transition ${
-                                    isSelected
+                                  className={`w-full p-3.5 rounded-xl text-left text-sm flex items-center justify-between border transition ${isSelected
                                       ? 'bg-indigo-600/20 border-indigo-500 text-white font-medium'
                                       : 'bg-slate-950 border-slate-800 text-slate-300 hover:border-slate-700 hover:bg-slate-850'
-                                  }`}
+                                    }`}
                                 >
                                   <span>{opt.text}</span>
                                   <div
-                                    className={`w-4 h-4 rounded-full border flex items-center justify-center ${
-                                      isSelected
+                                    className={`w-4 h-4 rounded-full border flex items-center justify-center ${isSelected
                                         ? 'border-indigo-400 bg-indigo-500'
                                         : 'border-slate-600'
-                                    }`}
+                                      }`}
                                   >
                                     {isSelected && <div className="w-1.5 h-1.5 bg-white rounded-full"></div>}
                                   </div>
@@ -918,24 +906,21 @@ export const CourseLearningPage: React.FC = () => {
                     /* Quiz Results and Answers Review (Section 17) */
                     <div className="space-y-6">
                       <div
-                        className={`p-6 rounded-2xl border text-center space-y-3 ${
-                          mcqResult.passed
+                        className={`p-6 rounded-2xl border text-center space-y-3 ${mcqResult.passed
                             ? 'bg-emerald-950/20 border-emerald-800/40'
                             : 'bg-rose-950/20 border-rose-800/40'
-                        }`}
+                          }`}
                       >
                         <Award
-                          className={`w-12 h-12 mx-auto ${
-                            mcqResult.passed ? 'text-emerald-400' : 'text-rose-400'
-                          }`}
+                          className={`w-12 h-12 mx-auto ${mcqResult.passed ? 'text-emerald-400' : 'text-rose-400'
+                            }`}
                         />
                         <h3 className="text-xl font-bold text-white">
                           Score: {mcqResult.score} / {mcqResult.totalQuestions}
                         </h3>
                         <p
-                          className={`text-sm font-semibold ${
-                            mcqResult.passed ? 'text-emerald-400' : 'text-rose-400'
-                          }`}
+                          className={`text-sm font-semibold ${mcqResult.passed ? 'text-emerald-400' : 'text-rose-400'
+                            }`}
                         >
                           {mcqResult.percentage}% • {mcqResult.passed ? 'Passed (≥60%)' : 'Needs Practice (<60%)'}
                         </p>
@@ -959,20 +944,18 @@ export const CourseLearningPage: React.FC = () => {
                         {mcqResult.review.map((item, idx) => (
                           <div
                             key={item.questionId}
-                            className={`p-4 rounded-xl border space-y-2 text-xs ${
-                              item.isCorrect
+                            className={`p-4 rounded-xl border space-y-2 text-xs ${item.isCorrect
                                 ? 'bg-slate-900 border-emerald-800/40'
                                 : 'bg-slate-900 border-rose-800/40'
-                            }`}
+                              }`}
                           >
                             <div className="flex items-center justify-between">
                               <span className="font-bold text-slate-200">
                                 Question {idx + 1}
                               </span>
                               <span
-                                className={`font-semibold ${
-                                  item.isCorrect ? 'text-emerald-400' : 'text-rose-400'
-                                }`}
+                                className={`font-semibold ${item.isCorrect ? 'text-emerald-400' : 'text-rose-400'
+                                  }`}
                               >
                                 {item.isCorrect ? '✓ Correct' : '✗ Incorrect'}
                               </span>

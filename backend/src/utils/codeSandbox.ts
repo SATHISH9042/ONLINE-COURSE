@@ -163,7 +163,7 @@ export async function executePython(
       timedOut = true;
       try {
         child.kill('SIGKILL');
-      } catch {}
+      } catch { }
     }, timeoutMs);
 
     child.stdout.on('data', (data) => {

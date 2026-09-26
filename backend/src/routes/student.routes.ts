@@ -18,6 +18,9 @@ router.get('/dashboard', StudentDashboardController.getDashboardSummary);
 // Section 8: My Courses
 router.get('/courses', StudentDashboardController.getMyCourses);
 
+// Section 9: Browse Courses Catalog
+router.get('/catalog', StudentDashboardController.getCourseCatalog);
+
 // Section 23: Student Profile
 router.get('/profile', StudentDashboardController.getProfile);
 router.put('/profile', StudentDashboardController.updateProfile);

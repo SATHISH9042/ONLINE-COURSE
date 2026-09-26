@@ -7,6 +7,7 @@ import authRoutes from './routes/auth.routes';
 import adminRoutes from './routes/admin.routes';
 import studentRoutes from './routes/student.routes';
 import learningRoutes from './routes/learning.routes';
+import paymentRoutes from './routes/payment.routes';
 import { errorHandler } from './middleware/error.middleware';
 
 export const app = express();
@@ -61,6 +62,7 @@ app.get('/health', (req, res) => {
 // API Routes
 app.use('/api/v1/auth', authLimiter, authRoutes);
 app.use('/api/v1/admin', adminRoutes);
+app.use('/api/v1/payments', paymentRoutes);
 app.use('/api/v1/student/learning', learningRoutes);
 app.use('/api/v1/student', studentRoutes);
 app.use('/api/v1/faqs', (req, res, next) => {

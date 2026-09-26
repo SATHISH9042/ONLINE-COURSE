@@ -1,0 +1,11 @@
+{
+  "name": "institute-lms",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "backend:dev": "npm --prefix backend run dev",
+    "frontend:dev": "npm --prefix frontend run dev",
+    "backend:migrate": "npm --prefix backend run migrate",
+    "backend:seed": "npm --prefix backend run seed"
+  }
+}

@@ -12,8 +12,25 @@ import { errorHandler } from './middleware/error.middleware';
 
 export const app = express();
 
-// Security HTTP headers
-app.use(helmet());
+// Security HTTP headers with comprehensive Content Security Policy & protections
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: ["'self'", 'data:', 'blob:', 'https:'],
+        connectSrc: ["'self'", 'https:'],
+        objectSrc: ["'none'"],
+        frameAncestors: ["'none'"],
+      },
+    },
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+    referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+    xContentTypeOptions: true,
+  })
+);
 
 // CORS configuration
 app.use(
@@ -33,14 +50,32 @@ app.use(
 );
 app.options('*', cors());
 
-// Body parsing with size guards
+// Body parsing with strict payload size guards (prevent denial of service)
 app.use(express.json({ limit: '5mb' }));
 app.use(express.urlencoded({ extended: true, limit: '5mb' }));
 
-// Auth rate limiter to protect against credential stuffing
+// Input sanitization middleware: scrubs XSS & script tags from body, query, and params
+import { sanitizeInputs } from './middleware/sanitize.middleware';
+app.use(sanitizeInputs);
+
+// General API rate limiter across standard endpoints
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: process.env.NODE_ENV === 'test' ? 5000 : 1000,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    code: 'RATE_LIMIT_EXCEEDED',
+    message: 'Too many requests from this IP. Please slow down.',
+  },
+});
+app.use('/api', apiLimiter);
+
+// Auth rate limiter to protect against credential stuffing & brute force
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 60, // Limit each IP to 60 auth requests per windowMs
+  max: process.env.NODE_ENV === 'test' ? 5000 : 100, // 100 auth attempts per windowMs
   standardHeaders: true,
   legacyHeaders: false,
   message: {

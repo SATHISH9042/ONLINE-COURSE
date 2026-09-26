@@ -183,21 +183,19 @@ export const NotificationsPage: React.FC = () => {
         <div className="flex items-center space-x-2">
           <button
             onClick={() => setFilterUnreadOnly(false)}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
-              !filterUnreadOnly
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${!filterUnreadOnly
                 ? 'bg-slate-900 text-white shadow-xs'
                 : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
-            }`}
+              }`}
           >
             All Notifications
           </button>
           <button
             onClick={() => setFilterUnreadOnly(true)}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
-              filterUnreadOnly
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${filterUnreadOnly
                 ? 'bg-brand-600 text-white shadow-xs'
                 : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
-            }`}
+              }`}
           >
             Unread Only ({unreadCount})
           </button>
@@ -242,11 +240,10 @@ export const NotificationsPage: React.FC = () => {
             <div
               key={item.id}
               onClick={() => handleNotificationClick(item)}
-              className={`p-4 sm:p-5 rounded-2xl border transition-all cursor-pointer flex items-start gap-4 ${
-                !item.isRead
+              className={`p-4 sm:p-5 rounded-2xl border transition-all cursor-pointer flex items-start gap-4 ${!item.isRead
                   ? 'bg-brand-50/20 border-brand-200/80 shadow-xs hover:border-brand-300'
                   : 'bg-white border-slate-200 hover:border-slate-300'
-              }`}
+                }`}
             >
               {/* Type Icon */}
               <div
@@ -287,9 +284,8 @@ export const NotificationsPage: React.FC = () => {
                 </div>
 
                 <h3
-                  className={`text-sm ${
-                    !item.isRead ? 'font-bold text-slate-900' : 'font-medium text-slate-800'
-                  }`}
+                  className={`text-sm ${!item.isRead ? 'font-bold text-slate-900' : 'font-medium text-slate-800'
+                    }`}
                 >
                   {item.title}
                 </h3>

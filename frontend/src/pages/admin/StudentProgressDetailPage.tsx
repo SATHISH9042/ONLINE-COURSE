@@ -95,13 +95,12 @@ export const StudentProgressDetailPage: React.FC = () => {
             <div className="flex items-center space-x-2">
               <h1 className="text-xl font-extrabold text-slate-900">{student.name}</h1>
               <span
-                className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full ${
-                  student.status === 'ACTIVE'
+                className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full ${student.status === 'ACTIVE'
                     ? 'bg-emerald-100 text-emerald-800'
                     : student.status === 'PENDING_APPROVAL'
-                    ? 'bg-amber-100 text-amber-800'
-                    : 'bg-rose-100 text-rose-800'
-                }`}
+                      ? 'bg-amber-100 text-amber-800'
+                      : 'bg-rose-100 text-rose-800'
+                  }`}
               >
                 {student.status}
               </span>

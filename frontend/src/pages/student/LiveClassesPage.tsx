@@ -156,43 +156,39 @@ export const LiveClassesPage: React.FC = () => {
       <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 pb-3">
         <button
           onClick={() => setActiveTab('all')}
-          className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
-            activeTab === 'all'
+          className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all ${activeTab === 'all'
               ? 'bg-slate-900 text-white shadow-sm'
               : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
-          }`}
+            }`}
         >
           All Sessions ({data.live.length + data.upcoming.length + data.recordings.length})
         </button>
         <button
           onClick={() => setActiveTab('live')}
-          className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all inline-flex items-center space-x-1.5 ${
-            activeTab === 'live'
+          className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all inline-flex items-center space-x-1.5 ${activeTab === 'live'
               ? 'bg-red-600 text-white shadow-sm'
               : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
-          }`}
+            }`}
         >
           <Radio className={`w-3.5 h-3.5 ${data.live.length > 0 ? 'text-red-500 animate-pulse' : ''}`} />
           <span>Live Now ({data.live.length})</span>
         </button>
         <button
           onClick={() => setActiveTab('upcoming')}
-          className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all inline-flex items-center space-x-1.5 ${
-            activeTab === 'upcoming'
+          className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all inline-flex items-center space-x-1.5 ${activeTab === 'upcoming'
               ? 'bg-brand-600 text-white shadow-sm'
               : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
-          }`}
+            }`}
         >
           <Calendar className="w-3.5 h-3.5" />
           <span>Upcoming Schedule ({data.upcoming.length})</span>
         </button>
         <button
           onClick={() => setActiveTab('recordings')}
-          className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all inline-flex items-center space-x-1.5 ${
-            activeTab === 'recordings'
+          className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all inline-flex items-center space-x-1.5 ${activeTab === 'recordings'
               ? 'bg-indigo-600 text-white shadow-sm'
               : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
-          }`}
+            }`}
         >
           <Film className="w-3.5 h-3.5" />
           <span>Recorded Library ({data.recordings.length})</span>

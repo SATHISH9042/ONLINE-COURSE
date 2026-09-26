@@ -41,7 +41,7 @@ export const StudentLayout: React.FC = () => {
 
   // Fetch unread notifications count on route change
   useEffect(() => {
-    notificationService.getUnreadCount().then(setUnreadCount).catch(() => {});
+    notificationService.getUnreadCount().then(setUnreadCount).catch(() => { });
   }, [location.pathname]);
 
   // Close mobile sidebar on route change

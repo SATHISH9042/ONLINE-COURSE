@@ -1,6 +1,6 @@
 import { ApiResponse } from '../types';
 
-const API_BASE = '/api/v1';
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5001/api/v1';
 
 class ApiClient {
   private getAuthHeader(): Record<string, string> {

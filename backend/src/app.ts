@@ -28,6 +28,7 @@ app.use(
     allowedHeaders: ['Content-Type', 'Authorization'],
   })
 );
+app.options('*', cors());
 
 // Body parsing with size guards
 app.use(express.json({ limit: '5mb' }));

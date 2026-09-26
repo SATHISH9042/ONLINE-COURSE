@@ -7,7 +7,14 @@ import { RegisterPage } from './pages/auth/RegisterPage';
 import { PendingApprovalPage } from './pages/auth/PendingApprovalPage';
 import { PendingStudentsPage } from './pages/admin/PendingStudentsPage';
 import { AllStudentsPage } from './pages/admin/AllStudentsPage';
-import { StudentDashboardPlaceholder } from './pages/student/StudentDashboardPlaceholder';
+import { StudentLayout } from './layouts/StudentLayout';
+import { StudentHomePage } from './pages/student/StudentHomePage';
+import { MyCoursesPage } from './pages/student/MyCoursesPage';
+import { BrowseCoursesPage } from './pages/student/BrowseCoursesPage';
+import { LiveClassesPage } from './pages/student/LiveClassesPage';
+import { NotificationsPage } from './pages/student/NotificationsPage';
+import { StudentProfilePage } from './pages/student/StudentProfilePage';
+import { HelpPage } from './pages/student/HelpPage';
 
 // Protected route guard for Admin
 const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -26,10 +33,15 @@ const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   }
 
   if (user.role !== 'ADMIN') {
-    return <Navigate to="/student/dashboard" replace />;
+    return <Navigate to="/student/home" replace />;
   }
 
-  return <>{children}</>;
+  return (
+    <div className="min-h-screen flex flex-col bg-slate-50">
+      <Navbar />
+      <main className="flex-1">{children}</main>
+    </div>
+  );
 };
 
 // Protected route guard for Student
@@ -83,58 +95,63 @@ const RootRedirect: React.FC = () => {
     return <Navigate to="/pending-approval" replace />;
   }
 
-  return <Navigate to="/student/dashboard" replace />;
+  return <Navigate to="/student/home" replace />;
 };
 
 export const App: React.FC = () => {
   return (
     <AuthProvider>
       <Router>
-        <div className="min-h-screen flex flex-col bg-slate-50">
-          <Navbar />
-          <main className="flex-1">
-            <Routes>
-              {/* Root redirector */}
-              <Route path="/" element={<RootRedirect />} />
+        <Routes>
+          {/* Root redirector */}
+          <Route path="/" element={<RootRedirect />} />
 
-              {/* Public auth routes */}
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/register" element={<RegisterPage />} />
-              <Route path="/pending-approval" element={<PendingApprovalPage />} />
+          {/* Public auth routes */}
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/pending-approval" element={<PendingApprovalPage />} />
 
-              {/* Protected admin routes */}
-              <Route
-                path="/admin/pending-students"
-                element={
-                  <AdminRoute>
-                    <PendingStudentsPage />
-                  </AdminRoute>
-                }
-              />
-              <Route
-                path="/admin/students"
-                element={
-                  <AdminRoute>
-                    <AllStudentsPage />
-                  </AdminRoute>
-                }
-              />
+          {/* Protected Admin Routes */}
+          <Route
+            path="/admin/pending-students"
+            element={
+              <AdminRoute>
+                <PendingStudentsPage />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/students"
+            element={
+              <AdminRoute>
+                <AllStudentsPage />
+              </AdminRoute>
+            }
+          />
 
-              {/* Protected student routes */}
-              <Route
-                path="/student/dashboard"
-                element={
-                  <StudentRoute>
-                    <StudentDashboardPlaceholder />
-                  </StudentRoute>
-                }
-              />
+          {/* SECTION 6: Protected Student Routes under StudentLayout */}
+          <Route
+            path="/student"
+            element={
+              <StudentRoute>
+                <StudentLayout />
+              </StudentRoute>
+            }
+          >
+            <Route index element={<Navigate to="/student/home" replace />} />
+            <Route path="home" element={<StudentHomePage />} />
+            <Route path="dashboard" element={<Navigate to="/student/home" replace />} />
+            <Route path="my-courses" element={<MyCoursesPage />} />
+            <Route path="browse" element={<BrowseCoursesPage />} />
+            <Route path="live-classes" element={<LiveClassesPage />} />
+            <Route path="notifications" element={<NotificationsPage />} />
+            <Route path="profile" element={<StudentProfilePage />} />
+            <Route path="help" element={<HelpPage />} />
+          </Route>
 
-              {/* Fallback */}
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </main>
-        </div>
+          {/* Fallback */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
       </Router>
     </AuthProvider>
   );

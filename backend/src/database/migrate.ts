@@ -5,7 +5,7 @@ import { db } from './db';
 export async function runMigrations() {
   console.log('[Migration] Starting database migration...');
   const schemaPath = path.resolve(__dirname, '../../../database/schema.sql');
-  
+
   if (!fs.existsSync(schemaPath)) {
     throw new Error(`Schema file not found at: ${schemaPath}`);
   }

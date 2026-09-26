@@ -1,0 +1,25 @@
+import { Router } from 'express';
+import { StudentDashboardController } from '../controllers/student.dashboard.controller';
+import { authenticateToken, requireActive, requireRole } from '../middleware/auth.middleware';
+
+const router = Router();
+
+// Public FAQs endpoint (accessible to anyone or students)
+router.get('/faqs', StudentDashboardController.getFaqs);
+
+// Protected student routes: requires valid token, ACTIVE status, and STUDENT role
+router.use(authenticateToken);
+router.use(requireActive);
+router.use(requireRole(['STUDENT']));
+
+// Section 7: Home dashboard overview
+router.get('/dashboard', StudentDashboardController.getDashboardSummary);
+
+// Section 8: My Courses
+router.get('/courses', StudentDashboardController.getMyCourses);
+
+// Section 23: Student Profile
+router.get('/profile', StudentDashboardController.getProfile);
+router.put('/profile', StudentDashboardController.updateProfile);
+
+export default router;

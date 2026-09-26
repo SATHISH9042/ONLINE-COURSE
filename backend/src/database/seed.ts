@@ -8,6 +8,8 @@ export async function seedDatabase() {
   const adminEmail = 'admin@institute.edu';
   const adminPass = 'Admin@123';
 
+  let adminId = '';
+
   const existing = await db.query(
     'SELECT id FROM users WHERE phone = $1 OR email = $2',
     [adminPhone, adminEmail]
@@ -15,7 +17,7 @@ export async function seedDatabase() {
 
   if (existing.rowCount === 0) {
     const passwordHash = await hashPassword(adminPass);
-    
+
     // Create admin user
     const userRes = await db.query(
       `INSERT INTO users (phone, email, password_hash, role, status)
@@ -24,7 +26,7 @@ export async function seedDatabase() {
       [adminPhone, adminEmail, passwordHash]
     );
 
-    const adminId = userRes.rows[0].id;
+    adminId = userRes.rows[0].id;
 
     // Create admin profile
     await db.query(
@@ -38,31 +40,260 @@ export async function seedDatabase() {
     console.log(`       Phone:    ${adminPhone}`);
     console.log(`       Password: ${adminPass}`);
   } else {
+    adminId = existing.rows[0].id;
     console.log('[Seed] Administrator already exists. Skipping admin creation.');
   }
 
-  // Create a sample pending student if table is empty of students, to make testing easy
-  const studentCheck = await db.query("SELECT id FROM users WHERE role = 'STUDENT'");
-  if (studentCheck.rowCount === 0) {
-    const samplePass = await hashPassword('Student@123');
-    const studentRes = await db.query(
-      `INSERT INTO users (phone, email, password_hash, role, status)
-       VALUES ($1, $2, $3, 'STUDENT', 'PENDING_APPROVAL')
+  // 1. Seed sample courses if none exist
+  const coursesCheck = await db.query('SELECT id FROM courses LIMIT 1');
+  let fullStackCourseId = '';
+  let javaCourseId = '';
+
+  if (coursesCheck.rowCount === 0) {
+    console.log('[Seed] Seeding sample courses and syllabus...');
+
+    // Course 1: Full Stack Development
+    const c1 = await db.query(
+      `INSERT INTO courses (title, slug, short_description, description, thumbnail_url, price, currency, duration_hours, instructor_name, is_published, sort_order)
+       VALUES ($1, $2, $3, $4, $5, $6, 'INR', $7, $8, TRUE, 1)
        RETURNING id`,
-      ['+919876543210', 'rahul.sharma@example.com', samplePass]
+      [
+        'Full Stack Web Development',
+        'full-stack-web-development',
+        'Master React, Node.js, Express, and PostgreSQL with real-world industry projects.',
+        'A comprehensive hands-on boot camp covering modern frontend and backend development, database design, REST APIs, authentication, and cloud deployment.',
+        'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=600&q=80',
+        9999.0,
+        120,
+        'Dr. Rajesh Verma',
+      ]
     );
+    fullStackCourseId = c1.rows[0].id;
+
+    // Course 1 -> Topic 1: JavaScript Foundations
+    const t1 = await db.query(
+      `INSERT INTO course_topics (course_id, title, description, sort_order)
+       VALUES ($1, 'JavaScript Architecture', 'Core language mechanics, runtime engine, and asynchronous programming.', 1)
+       RETURNING id`,
+      [fullStackCourseId]
+    );
+    const topic1Id = t1.rows[0].id;
+
+    // Subtopic 1.1: Introduction & Variables
+    const s1 = await db.query(
+      `INSERT INTO course_subtopics (topic_id, title, sort_order)
+       VALUES ($1, 'Introduction & Variables', 1)
+       RETURNING id`,
+      [topic1Id]
+    );
+    // Subtopic 1.2: Functions & Closures (matching Section 7 example!)
+    const s2 = await db.query(
+      `INSERT INTO course_subtopics (topic_id, title, sort_order)
+       VALUES ($1, 'Functions & Closures', 2)
+       RETURNING id`,
+      [topic1Id]
+    );
+    // Subtopic 1.3: Asynchronous JS & Promises
+    await db.query(
+      `INSERT INTO course_subtopics (topic_id, title, sort_order)
+       VALUES ($1, 'Asynchronous JS & Promises', 3)`,
+      [topic1Id]
+    );
+
+    // Course 1 -> Topic 2: React.js Modern Frontend
+    const t2 = await db.query(
+      `INSERT INTO course_topics (course_id, title, description, sort_order)
+       VALUES ($1, 'React Modern Frontend', 'Component lifecycle, hooks, context API, and high-performance UI rendering.', 2)
+       RETURNING id`,
+      [fullStackCourseId]
+    );
+    const topic2Id = t2.rows[0].id;
 
     await db.query(
-      `INSERT INTO student_profiles (user_id, full_name, city, state)
-       VALUES ($1, $2, $3, $4)`,
-      [studentRes.rows[0].id, 'Rahul Sharma', 'Bengaluru', 'Karnataka']
+      `INSERT INTO course_subtopics (topic_id, title, sort_order)
+       VALUES ($1, 'Components, Props & JSX', 1)`,
+      [topic2Id]
+    );
+    await db.query(
+      `INSERT INTO course_subtopics (topic_id, title, sort_order)
+       VALUES ($1, 'State & Effect Hooks', 2)`,
+      [topic2Id]
     );
 
-    console.log('[Seed] Sample pending student created:');
-    console.log('       Name:     Rahul Sharma');
-    console.log('       Phone:    +919876543210');
-    console.log('       Email:    rahul.sharma@example.com');
-    console.log('       Status:   PENDING_APPROVAL');
+    // Course 2: Java Full Stack Development (matching Section 8 example!)
+    const c2 = await db.query(
+      `INSERT INTO courses (title, slug, short_description, description, thumbnail_url, price, currency, duration_hours, instructor_name, is_published, sort_order)
+       VALUES ($1, $2, $3, $4, $5, $6, 'INR', $7, $8, TRUE, 2)
+       RETURNING id`,
+      [
+        'Java Full Stack Development',
+        'java-full-stack-development',
+        'Enterprise backend architecture with Spring Boot, Hibernate, microservices, and React.',
+        'Deep dive into Java 21, Spring Boot, Spring Security, Docker, and PostgreSQL microservices.',
+        'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=600&q=80',
+        14999.0,
+        150,
+        'Prof. Ananya Iyer',
+      ]
+    );
+    javaCourseId = c2.rows[0].id;
+
+    const jt1 = await db.query(
+      `INSERT INTO course_topics (course_id, title, description, sort_order)
+       VALUES ($1, 'Core Java Fundamentals', 'OOP concepts, Generics, Collections, and Concurrency.', 1)
+       RETURNING id`,
+      [javaCourseId]
+    );
+    await db.query(
+      `INSERT INTO course_subtopics (topic_id, title, sort_order)
+       VALUES ($1, 'Object-Oriented Design', 1)`,
+      [jt1.rows[0].id]
+    );
+    await db.query(
+      `INSERT INTO course_subtopics (topic_id, title, sort_order)
+       VALUES ($1, 'Collections Framework', 2)`,
+      [jt1.rows[0].id]
+    );
+
+    console.log('[Seed] Sample courses created.');
+  }
+
+  // 2. Seed an ACTIVE sample student enrolled in courses to test Student Dashboard immediately
+  const activeStudentPhone = '+919888877777';
+  const activeStudentEmail = 'priya.patel@example.com';
+  const activeStudentCheck = await db.query(
+    'SELECT id FROM users WHERE phone = $1 OR email = $2',
+    [activeStudentPhone, activeStudentEmail]
+  );
+
+  let studentUserId = '';
+  if (activeStudentCheck.rowCount === 0) {
+    const studentPass = await hashPassword('Student@123');
+    const studentRes = await db.query(
+      `INSERT INTO users (phone, email, password_hash, role, status)
+       VALUES ($1, $2, $3, 'STUDENT', 'ACTIVE')
+       RETURNING id`,
+      [activeStudentPhone, activeStudentEmail, studentPass]
+    );
+    studentUserId = studentRes.rows[0].id;
+
+    await db.query(
+      `INSERT INTO student_profiles (user_id, full_name, bio, city, state)
+       VALUES ($1, 'Priya Patel', 'Aspiring software engineer excited to learn full-stack web engineering.', 'Bengaluru', 'Karnataka')`,
+      [studentUserId]
+    );
+
+    console.log('[Seed] Sample ACTIVE student created:');
+    console.log(`       Name:     Priya Patel`);
+    console.log(`       Phone:    ${activeStudentPhone}`);
+    console.log(`       Email:    ${activeStudentEmail}`);
+    console.log(`       Password: Student@123`);
+    console.log(`       Status:   ACTIVE`);
+
+    // Enroll in the course if available
+    const coursesRes = await db.query('SELECT id FROM courses ORDER BY sort_order ASC');
+    if (coursesRes.rowCount > 0) {
+      const course1 = coursesRes.rows[0].id;
+      await db.query(
+        `INSERT INTO course_enrollments (student_id, course_id, status)
+         VALUES ($1, $2, 'ACTIVE')
+         ON CONFLICT DO NOTHING`,
+        [studentUserId, course1]
+      );
+
+      // Populate sample progress matching Section 7 ("Progress: 64%", "Functions & Closures")
+      const subtopicsRes = await db.query(
+        `SELECT cs.id, cs.title
+         FROM course_subtopics cs
+         JOIN course_topics ct ON ct.id = cs.topic_id
+         WHERE ct.course_id = $1
+         ORDER BY ct.sort_order ASC, cs.sort_order ASC`,
+        [course1]
+      );
+
+      if (subtopicsRes.rowCount >= 2) {
+        // Mark first subtopic completed
+        await db.query(
+          `INSERT INTO student_progress (student_id, subtopic_id, is_completed, completed_at, last_accessed_at)
+           VALUES ($1, $2, TRUE, NOW() - INTERVAL '1 day', NOW() - INTERVAL '1 day')
+           ON CONFLICT DO NOTHING`,
+          [studentUserId, subtopicsRes.rows[0].id]
+        );
+
+        // Mark second subtopic accessed recently (Functions & Closures)
+        await db.query(
+          `INSERT INTO student_progress (student_id, subtopic_id, is_completed, last_accessed_at)
+           VALUES ($1, $2, FALSE, NOW())
+           ON CONFLICT DO NOTHING`,
+          [studentUserId, subtopicsRes.rows[1].id]
+        );
+      }
+    }
+  }
+
+  // 3. Seed an upcoming Live Class if none exist
+  const liveClassCheck = await db.query('SELECT id FROM live_classes LIMIT 1');
+  if (liveClassCheck.rowCount === 0) {
+    const courseRes = await db.query('SELECT id FROM courses LIMIT 1');
+    const courseId = courseRes.rowCount > 0 ? courseRes.rows[0].id : null;
+
+    const startTime = new Date();
+    startTime.setDate(startTime.getDate() + 2);
+    startTime.setHours(19, 0, 0, 0); // 7:00 PM
+
+    const endTime = new Date(startTime);
+    endTime.setHours(20, 30, 0, 0); // 8:30 PM
+
+    await db.query(
+      `INSERT INTO live_classes (course_id, instructor_name, title, description, start_time, end_time, meeting_link, status)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, 'UPCOMING')`,
+      [
+        courseId,
+        'Dr. Rajesh Verma',
+        'JavaScript Live Masterclass: Closures & Scope Chain',
+        'Interactive live coding session deep-diving into execution contexts, closures, and memory optimization.',
+        startTime.toISOString(),
+        endTime.toISOString(),
+        'https://meet.jit.si/ApexInstitute_JS_Live_Masterclass',
+      ]
+    );
+    console.log('[Seed] Sample upcoming live class created.');
+  }
+
+  // 4. Seed FAQs if none exist
+  const faqCheck = await db.query('SELECT id FROM faqs LIMIT 1');
+  if (faqCheck.rowCount === 0) {
+    const faqs = [
+      {
+        category: 'Course Access',
+        question: 'When will my course become accessible after registration?',
+        answer: 'All new student registrations require verification by an administrator. Once approved, you can log in, browse all courses, and immediately start enrolled lessons.',
+      },
+      {
+        category: 'Learning & Video',
+        question: 'Can I resume videos from where I left off?',
+        answer: 'Yes! The platform tracks your exact playback position across desktop, tablet, and mobile devices so you can pick up precisely where you stopped.',
+      },
+      {
+        category: 'Live Classes',
+        question: 'How do I join scheduled live classes?',
+        answer: 'Navigate to the Live Classes section in your sidebar. When a session is scheduled and live, click "Join Class" to access the virtual classroom.',
+      },
+      {
+        category: 'Payments',
+        question: 'Which payment methods are accepted for course purchases?',
+        answer: 'We support all major payment methods via Razorpay (UPI, Credit/Debit cards, Net Banking) as well as direct institutional QR code payments verified by the administrative team.',
+      },
+    ];
+
+    for (const faq of faqs) {
+      await db.query(
+        `INSERT INTO faqs (category, question, answer, sort_order, is_published)
+         VALUES ($1, $2, $3, 1, TRUE)`,
+        [faq.category, faq.question, faq.answer]
+      );
+    }
+    console.log('[Seed] Sample FAQs created.');
   }
 
   console.log('[Seed] Database seeding completed successfully.');

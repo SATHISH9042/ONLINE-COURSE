@@ -5,6 +5,7 @@ import rateLimit from 'express-rate-limit';
 import { config } from './config';
 import authRoutes from './routes/auth.routes';
 import adminRoutes from './routes/admin.routes';
+import studentRoutes from './routes/student.routes';
 import { errorHandler } from './middleware/error.middleware';
 
 export const app = express();
@@ -59,6 +60,12 @@ app.get('/health', (req, res) => {
 // API Routes
 app.use('/api/v1/auth', authLimiter, authRoutes);
 app.use('/api/v1/admin', adminRoutes);
+app.use('/api/v1/student', studentRoutes);
+app.use('/api/v1/faqs', (req, res, next) => {
+  // Shortcut to public FAQs
+  const { StudentDashboardController } = require('./controllers/student.dashboard.controller');
+  StudentDashboardController.getFaqs(req, res, next);
+});
 
 // 404 handler for undefined routes
 app.use((req, res) => {

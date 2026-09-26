@@ -24,11 +24,17 @@ class DatabaseManager implements DbClient {
   private async getClient(): Promise<{ type: 'pg' | 'pglite'; instance: Pool | PGlite }> {
     if (!this.initialized) {
       if (config.databaseUrl) {
+        const isCloudDb = config.databaseUrl.includes('sslmode=') ||
+          config.databaseUrl.includes('neon.tech') ||
+          config.databaseUrl.includes('supabase') ||
+          config.nodeEnv === 'production';
+
         this.pgPool = new Pool({
           connectionString: config.databaseUrl,
           max: 20,
           idleTimeoutMillis: 30000,
-          connectionTimeoutMillis: 5000,
+          connectionTimeoutMillis: 10000,
+          ssl: isCloudDb ? { rejectUnauthorized: false } : undefined,
         });
         this.initialized = true;
         console.log('[Database] Connected to external PostgreSQL via DATABASE_URL');

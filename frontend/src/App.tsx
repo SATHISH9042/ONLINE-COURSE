@@ -7,6 +7,8 @@ import { RegisterPage } from './pages/auth/RegisterPage';
 import { PendingApprovalPage } from './pages/auth/PendingApprovalPage';
 import { PendingStudentsPage } from './pages/admin/PendingStudentsPage';
 import { AllStudentsPage } from './pages/admin/AllStudentsPage';
+import { CourseListPage } from './pages/admin/CourseListPage';
+import { CurriculumEditorPage } from './pages/admin/CurriculumEditorPage';
 import { StudentLayout } from './layouts/StudentLayout';
 import { StudentHomePage } from './pages/student/StudentHomePage';
 import { MyCoursesPage } from './pages/student/MyCoursesPage';
@@ -112,6 +114,22 @@ export const App: React.FC = () => {
           <Route path="/pending-approval" element={<PendingApprovalPage />} />
 
           {/* Protected Admin Routes */}
+          <Route
+            path="/admin/courses"
+            element={
+              <AdminRoute>
+                <CourseListPage />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/courses/:id/curriculum"
+            element={
+              <AdminRoute>
+                <CurriculumEditorPage />
+              </AdminRoute>
+            }
+          />
           <Route
             path="/admin/pending-students"
             element={

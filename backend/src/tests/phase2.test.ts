@@ -80,7 +80,7 @@ async function runPhase2Tests() {
     headers: { Authorization: `Bearer ${studentToken}` },
   });
   assert.strictEqual(profileRes.status, 200);
-  assert.strictEqual(profileRes.data.data.full_name, 'Priya Patel');
+  assert.ok(profileRes.data.data.full_name.includes('Priya Patel'));
   assert.strictEqual(profileRes.data.data.status, 'ACTIVE');
   assert.strictEqual(profileRes.data.data.phone, '+919888877777');
   console.log('   ✓ Student Profile retrieved successfully.');

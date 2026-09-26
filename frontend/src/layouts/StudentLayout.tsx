@@ -182,10 +182,9 @@ export const StudentLayout: React.FC = () => {
                   key={item.path}
                   to={item.path}
                   className={({ isActive }) =>
-                    `flex items-center px-3.5 py-3 rounded-xl text-sm font-semibold transition-all ${
-                      isActive
-                        ? 'bg-brand-50 text-brand-700 shadow-xs'
-                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                    `flex items-center px-3.5 py-3 rounded-xl text-sm font-semibold transition-all ${isActive
+                      ? 'bg-brand-50 text-brand-700 shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                     }`
                   }
                 >
@@ -240,10 +239,9 @@ export const StudentLayout: React.FC = () => {
                       to={item.path}
                       onClick={() => setMobileSidebarOpen(false)}
                       className={({ isActive }) =>
-                        `flex items-center px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
-                          isActive
-                            ? 'bg-brand-50 text-brand-700'
-                            : 'text-slate-600 hover:bg-slate-50'
+                        `flex items-center px-4 py-3 rounded-xl text-sm font-semibold transition-all ${isActive
+                          ? 'bg-brand-50 text-brand-700'
+                          : 'text-slate-600 hover:bg-slate-50'
                         }`
                       }
                     >

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { GraduationCap, LogOut, User as UserIcon, Shield, Users, Clock } from 'lucide-react';
+import { GraduationCap, LogOut, User as UserIcon, Shield, Users, Clock, BookOpen } from 'lucide-react';
 import { StatusBadge } from './Badge';
 
 export const Navbar: React.FC = () => {
@@ -39,6 +39,13 @@ export const Navbar: React.FC = () => {
             <nav className="hidden md:flex items-center space-x-1">
               {user.role === 'ADMIN' ? (
                 <>
+                  <Link
+                    to="/admin/courses"
+                    className="flex items-center space-x-1.5 px-3 py-2 rounded-lg text-sm font-medium text-slate-700 hover:text-brand-600 hover:bg-slate-50"
+                  >
+                    <BookOpen className="w-4 h-4 text-brand-600" />
+                    <span>Courses</span>
+                  </Link>
                   <Link
                     to="/admin/pending-students"
                     className="flex items-center space-x-1.5 px-3 py-2 rounded-lg text-sm font-medium text-slate-700 hover:text-brand-600 hover:bg-slate-50"

@@ -448,53 +448,60 @@ export async function seedDatabase() {
   // 6. Seed Sample Financial Payments & Ledger (Section 36)
   // ---------------------------------------------------------------------------
   const payCountRes = await db.query('SELECT COUNT(*) as count FROM payments');
-  if (parseInt(payCountRes.rows[0].count, 10) < 5) {
-    const studentUserRes = await db.query("SELECT id FROM users WHERE role = 'STUDENT' LIMIT 5");
-    const allCoursesRes = await db.query('SELECT id, price, title FROM courses');
+  if (parseInt(payCountRes.rows[0].count, 10) < 10) {
+    const studentUsersRes = await db.query("SELECT id FROM users WHERE role = 'STUDENT' LIMIT 10");
+    const allCoursesRes = await db.query('SELECT id, price, title FROM courses WHERE is_published = TRUE ORDER BY sort_order ASC');
 
-    if (studentUserRes.rowCount > 0 && allCoursesRes.rowCount > 0) {
-      const studentId = studentUserRes.rows[0].id;
-      const c1 = allCoursesRes.rows[0];
-      const c2 = allCoursesRes.rows[1] || c1;
+    if (studentUsersRes.rowCount > 0 && allCoursesRes.rowCount > 0) {
+      const studentIds = studentUsersRes.rows.map((s) => s.id);
+      const courses = allCoursesRes.rows;
 
-      const sampleRecords = [
-        { monthsAgo: 8, amt: 9999, method: 'RAZORPAY', status: 'SUCCESS', cId: c1.id },
-        { monthsAgo: 7, amt: 14999, method: 'QR_CODE', status: 'MANUALLY_VERIFIED', cId: c2.id },
-        { monthsAgo: 6, amt: 9999, method: 'RAZORPAY', status: 'SUCCESS', cId: c1.id },
-        { monthsAgo: 5, amt: 14999, method: 'RAZORPAY', status: 'SUCCESS', cId: c2.id },
-        { monthsAgo: 4, amt: 19998, method: 'QR_CODE', status: 'MANUALLY_VERIFIED', cId: c1.id },
-        { monthsAgo: 3, amt: 9999, method: 'RAZORPAY', status: 'SUCCESS', cId: c1.id },
-        { monthsAgo: 2, amt: 14999, method: 'MANUAL_BANK_TRANSFER', status: 'SUCCESS', cId: c2.id },
-        { monthsAgo: 1, amt: 29998, method: 'RAZORPAY', status: 'SUCCESS', cId: c1.id },
-        { monthsAgo: 0, amt: 14999, method: 'QR_CODE', status: 'MANUALLY_VERIFIED', cId: c2.id },
-        { monthsAgo: 0, amt: 9999, method: 'RAZORPAY', status: 'SUCCESS', cId: c1.id },
-      ];
+      const baseDate = new Date();
+      let orderSeq = 1001;
 
-      for (let i = 0; i < sampleRecords.length; i++) {
-        const item = sampleRecords[i];
-        const date = new Date();
-        date.setMonth(date.getMonth() - item.monthsAgo);
-        date.setDate(10 + (i % 15));
+      // Seed across past 10 months with diverse distribution
+      for (let monthsAgo = 9; monthsAgo >= 0; monthsAgo--) {
+        const ordersInMonth = 2 + (9 - monthsAgo); // gradual growth from 2 to 11 orders
+        const targetDate = new Date(baseDate.getFullYear(), baseDate.getMonth() - monthsAgo, 1);
+        const yStr = targetDate.getFullYear();
+        const mStr = String(targetDate.getMonth() + 1).padStart(2, '0');
 
-        await db.query(
-          `INSERT INTO payments (
-             student_id, course_id, amount, currency, status, payment_method,
-             order_id, payment_id, created_at, verified_at
-           )
-           VALUES ($1, $2, $3, 'INR', $4, $5, $6, $7, $8, $8)`,
-          [
-            studentId,
-            item.cId,
-            item.amt,
-            item.status,
-            item.method,
-            `order_lms_${Date.now()}_${i}`,
-            `pay_lms_${Date.now()}_${i}`,
-            date.toISOString(),
-          ]
-        );
+        for (let j = 0; j < ordersInMonth; j++) {
+          const studentId = studentIds[(orderSeq + j) % studentIds.length];
+          const course = courses[(orderSeq * 2 + j) % courses.length];
+          const day = Math.min(2 + j * 2 + (orderSeq % 4), 28);
+          const orderDate = new Date(yStr, targetDate.getMonth(), day, 10 + (j % 8), 20 + (j * 3) % 40);
+
+          let method = 'RAZORPAY';
+          if (j % 3 === 1) method = 'QR_CODE';
+          else if (j % 5 === 0) method = 'MANUAL_BANK_TRANSFER';
+
+          const status = method === 'RAZORPAY' ? 'SUCCESS' : 'MANUALLY_VERIFIED';
+          const orderId = `ORD-${yStr}-${mStr}-${orderSeq}`;
+          const paymentId = `pay_${yStr}${mStr}_${orderSeq}`;
+
+          await db.query(
+            `INSERT INTO payments (
+               student_id, course_id, amount, currency, status, payment_method,
+               order_id, payment_id, created_at, verified_at
+             )
+             VALUES ($1, $2, $3, 'INR', $4, $5, $6, $7, $8, $8)`,
+            [
+              studentId,
+              course.id,
+              course.price,
+              status,
+              method,
+              orderId,
+              paymentId,
+              orderDate.toISOString(),
+            ]
+          );
+
+          orderSeq++;
+        }
       }
-      console.log('[Seed] Sample historical payments created for financial dashboard.');
+      console.log('[Seed] Authentic non-duplicate historical payment ledger created.');
     }
   }
 

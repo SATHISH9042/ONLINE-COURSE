@@ -115,12 +115,82 @@ export const FinancialDashboardPage: React.FC = () => {
     };
   }, [data, expenseRatio]);
 
+  // ---------------------------------------------------------------------------
+  // Client-Side Deduplication Guards (Ensures zero duplicate rows or items)
+  // ---------------------------------------------------------------------------
+  const monthlyRecords = useMemo(() => {
+    if (!data?.monthlyRecords) return [];
+    const seen = new Set<string>();
+    return data.monthlyRecords.filter((m) => {
+      const key = m.monthKey || `${m.year}-${m.monthLabel}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [data?.monthlyRecords]);
+
+  const yearlyRecords = useMemo(() => {
+    if (!data?.yearlyRecords) return [];
+    const seen = new Set<number>();
+    return data.yearlyRecords.filter((y) => {
+      if (seen.has(y.year)) return false;
+      seen.add(y.year);
+      return true;
+    });
+  }, [data?.yearlyRecords]);
+
+  const courseBreakdown = useMemo(() => {
+    if (!data?.courseBreakdown) return [];
+    const map = new Map<string, CourseRevenueRecord>();
+    for (const c of data.courseBreakdown) {
+      const title = (c.courseTitle || '').trim();
+      if (!title) continue;
+      if (!map.has(title)) {
+        map.set(title, { ...c });
+      } else {
+        const existing = map.get(title)!;
+        existing.ordersCount += c.ordersCount;
+        existing.grossRevenue += c.grossRevenue;
+        existing.netProfit += c.netProfit;
+        existing.revenueSharePercent = Math.min(100, existing.revenueSharePercent + c.revenueSharePercent);
+      }
+    }
+    return Array.from(map.values()).sort((a, b) => b.grossRevenue - a.grossRevenue);
+  }, [data?.courseBreakdown]);
+
+  const paymentMethodBreakdown = useMemo(() => {
+    if (!data?.paymentMethodBreakdown) return [];
+    const map = new Map<string, PaymentMethodRecord>();
+    for (const pm of data.paymentMethodBreakdown) {
+      const key = pm.method;
+      if (!map.has(key)) {
+        map.set(key, { ...pm });
+      } else {
+        const existing = map.get(key)!;
+        existing.count += pm.count;
+        existing.totalAmount += pm.totalAmount;
+        existing.percent = Math.min(100, existing.percent + pm.percent);
+      }
+    }
+    return Array.from(map.values()).sort((a, b) => b.totalAmount - a.totalAmount);
+  }, [data?.paymentMethodBreakdown]);
+
+  const ledgerEntries = useMemo(() => {
+    if (!data?.ledgerEntries) return [];
+    const seen = new Set<string>();
+    return data.ledgerEntries.filter((tx) => {
+      const key = tx.orderId || tx.id;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [data?.ledgerEntries]);
+
   // Filtered monthly records based on selected year
   const filteredMonthly = useMemo(() => {
-    if (!data?.monthlyRecords) return [];
-    if (selectedYear === 'ALL') return data.monthlyRecords;
-    return data.monthlyRecords.filter((m) => (m.year ? m.year.toString() : '') === selectedYear);
-  }, [data, selectedYear]);
+    if (selectedYear === 'ALL') return monthlyRecords;
+    return monthlyRecords.filter((m) => (m.year ? m.year.toString() : '') === selectedYear);
+  }, [monthlyRecords, selectedYear]);
 
   // Max revenue in monthly records for chart scaling
   const maxMonthlyRevenue = useMemo(() => {
@@ -131,10 +201,9 @@ export const FinancialDashboardPage: React.FC = () => {
 
   // Filtered ledger transactions
   const filteredLedger = useMemo(() => {
-    if (!data?.ledgerEntries) return [];
     const searchLower = (ledgerSearch || '').toLowerCase().trim();
 
-    return data.ledgerEntries.filter((item) => {
+    return ledgerEntries.filter((item) => {
       if (!item) return false;
       const orderId = String(item.orderId || '').toLowerCase();
       const studentName = String(item.studentName || '').toLowerCase();
@@ -155,7 +224,7 @@ export const FinancialDashboardPage: React.FC = () => {
 
       return matchesSearch && matchesStatus;
     });
-  }, [data, ledgerSearch, ledgerStatusFilter]);
+  }, [ledgerEntries, ledgerSearch, ledgerStatusFilter]);
 
   // Export CSV
   const handleExportCSV = () => {
@@ -232,13 +301,7 @@ export const FinancialDashboardPage: React.FC = () => {
     );
   }
 
-  const monthlyRecords = data.monthlyRecords || [];
-  const yearlyRecords = data.yearlyRecords || [];
-  const courseBreakdown = data.courseBreakdown || [];
-  const paymentMethodBreakdown = data.paymentMethodBreakdown || [];
-  const ledgerEntries = data.ledgerEntries || [];
-
-  // Extract unique years for filter
+  // Extract unique years for filter from deduplicated monthly records
   const availableYears = Array.from(
     new Set(monthlyRecords.map((m) => (m.year ? m.year.toString() : '')).filter(Boolean))
   ).sort().reverse();
@@ -271,11 +334,10 @@ export const FinancialDashboardPage: React.FC = () => {
           {/* Profit Simulator Toggle */}
           <button
             onClick={() => setShowSimulator(!showSimulator)}
-            className={`inline-flex items-center px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all ${
-              showSimulator
+            className={`inline-flex items-center px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all ${showSimulator
                 ? 'bg-brand-50 border-brand-300 text-brand-700 shadow-xs'
                 : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
-            }`}
+              }`}
           >
             <Sliders className="w-3.5 h-3.5 mr-1.5 text-brand-600" />
             <span>Margin Settings ({expenseRatio}%)</span>
@@ -526,51 +588,46 @@ export const FinancialDashboardPage: React.FC = () => {
           <div className="flex flex-wrap gap-1 bg-slate-100/80 p-1 rounded-2xl w-fit">
             <button
               onClick={() => setActiveTab('monthly')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                activeTab === 'monthly'
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'monthly'
                   ? 'bg-white text-slate-900 shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
-              }`}
+                }`}
             >
               📅 Monthly Records ({monthlyRecords.length})
             </button>
             <button
               onClick={() => setActiveTab('yearly')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                activeTab === 'yearly'
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'yearly'
                   ? 'bg-white text-slate-900 shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
-              }`}
+                }`}
             >
               📊 Yearly Overview ({yearlyRecords.length})
             </button>
             <button
               onClick={() => setActiveTab('courses')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                activeTab === 'courses'
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'courses'
                   ? 'bg-white text-slate-900 shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
-              }`}
+                }`}
             >
               📚 Course Subscription Inflow ({courseBreakdown.length})
             </button>
             <button
               onClick={() => setActiveTab('methods')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                activeTab === 'methods'
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'methods'
                   ? 'bg-white text-slate-900 shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
-              }`}
+                }`}
             >
               💳 Payment Gateways ({paymentMethodBreakdown.length})
             </button>
             <button
               onClick={() => setActiveTab('ledger')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                activeTab === 'ledger'
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'ledger'
                   ? 'bg-white text-slate-900 shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
-              }`}
+                }`}
             >
               📜 Financial Ledger ({filteredLedger.length})
             </button>
@@ -663,13 +720,12 @@ export const FinancialDashboardPage: React.FC = () => {
                         </td>
                         <td className="py-3.5 px-4">
                           <span
-                            className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                              simMargin >= 80
+                            className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${simMargin >= 80
                                 ? 'bg-emerald-100 text-emerald-800'
                                 : simMargin >= 60
-                                ? 'bg-blue-100 text-blue-800'
-                                : 'bg-amber-100 text-amber-800'
-                            }`}
+                                  ? 'bg-blue-100 text-blue-800'
+                                  : 'bg-amber-100 text-amber-800'
+                              }`}
                           >
                             {simMargin}%
                           </span>
@@ -1026,13 +1082,12 @@ export const FinancialDashboardPage: React.FC = () => {
                         </td>
                         <td className="py-3.5 px-4 text-right">
                           <span
-                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-extrabold ${
-                              tx.status === 'SUCCESS' || tx.status === 'MANUALLY_VERIFIED'
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-extrabold ${tx.status === 'SUCCESS' || tx.status === 'MANUALLY_VERIFIED'
                                 ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
                                 : tx.status === 'PENDING'
-                                ? 'bg-amber-100 text-amber-800 border border-amber-200'
-                                : 'bg-rose-100 text-rose-800 border border-rose-200'
-                            }`}
+                                  ? 'bg-amber-100 text-amber-800 border border-amber-200'
+                                  : 'bg-rose-100 text-rose-800 border border-rose-200'
+                              }`}
                           >
                             {tx.status}
                           </span>

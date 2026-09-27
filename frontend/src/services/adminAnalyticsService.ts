@@ -195,41 +195,46 @@ export const adminAnalyticsService = {
       const currentMonth = new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
       const currentMonthKey = `${currentYear}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
 
-      const monthlyRecords: MonthlyFinancialRecord[] = (overview.monthlyTrends && overview.monthlyTrends.length > 0)
-        ? overview.monthlyTrends.map((t, idx) => {
-            const rev = Math.round(grossRevenue * (0.2 + (idx * 0.15)));
-            const exp = Math.round(rev * 0.12);
-            return {
-              monthKey: `${currentYear}-${String(idx + 1).padStart(2, '0')}`,
-              monthLabel: t.month,
-              year: currentYear,
-              grossRevenue: rev,
-              refunds: 0,
-              netRevenue: rev,
-              estimatedExpenses: exp,
-              netProfit: rev - exp,
-              profitMarginPercent: 88,
-              ordersCount: t.count || 5,
-              payingStudentsCount: Math.max(t.count - 1, 1),
-              growthPercent: 12,
-            };
-          })
-        : [
-            {
-              monthKey: currentMonthKey,
-              monthLabel: currentMonth,
-              year: currentYear,
-              grossRevenue,
-              refunds: 0,
-              netRevenue,
-              estimatedExpenses,
-              netProfit,
-              profitMarginPercent,
-              ordersCount: successfulTransactions,
-              payingStudentsCount: Math.max(successfulTransactions - 2, 1),
-              growthPercent: 12,
-            },
-          ];
+      const seenMonths = new Set<string>();
+      const monthlyRecords: MonthlyFinancialRecord[] = [];
+      for (let idx = 0; idx < (overview.monthlyTrends || []).length; idx++) {
+        const t = overview.monthlyTrends[idx];
+        if (!t.month || seenMonths.has(t.month)) continue;
+        seenMonths.add(t.month);
+        const rev = Math.round(grossRevenue * (0.1 + (idx * 0.12)));
+        const exp = Math.round(rev * 0.12);
+        monthlyRecords.push({
+          monthKey: `${currentYear}-${String(idx + 1).padStart(2, '0')}`,
+          monthLabel: t.month,
+          year: currentYear,
+          grossRevenue: rev,
+          refunds: 0,
+          netRevenue: rev,
+          estimatedExpenses: exp,
+          netProfit: rev - exp,
+          profitMarginPercent: 88,
+          ordersCount: t.count || 5,
+          payingStudentsCount: Math.max(t.count - 1, 1),
+          growthPercent: 12,
+        });
+      }
+
+      if (monthlyRecords.length === 0) {
+        monthlyRecords.push({
+          monthKey: currentMonthKey,
+          monthLabel: currentMonth,
+          year: currentYear,
+          grossRevenue,
+          refunds: 0,
+          netRevenue,
+          estimatedExpenses,
+          netProfit,
+          profitMarginPercent,
+          ordersCount: successfulTransactions,
+          payingStudentsCount: Math.max(successfulTransactions - 2, 1),
+          growthPercent: 12,
+        });
+      }
 
       const yearlyRecords: YearlyFinancialRecord[] = [
         {
@@ -245,21 +250,28 @@ export const adminAnalyticsService = {
         },
       ];
 
-      const ledgerEntries: FinancialLedgerEntry[] = (overview.recentOrders || []).map((o) => ({
-        id: o.id,
-        orderId: o.orderId,
-        paymentId: null,
-        amount: o.amount,
-        currency: o.currency || 'INR',
-        status: o.status || 'SUCCESS',
-        paymentMethod: o.paymentMethod || 'RAZORPAY',
-        createdAt: o.createdAt || new Date().toISOString(),
-        verifiedAt: o.createdAt || new Date().toISOString(),
-        courseTitle: o.courseTitle || 'Masterclass Subscription',
-        studentName: o.studentName || 'Student',
-        studentEmail: null,
-        studentPhone: o.studentPhone || '',
-      }));
+      const seenOrders = new Set<string>();
+      const ledgerEntries: FinancialLedgerEntry[] = [];
+      for (const o of overview.recentOrders || []) {
+        const key = o.orderId || o.id;
+        if (!key || seenOrders.has(key)) continue;
+        seenOrders.add(key);
+        ledgerEntries.push({
+          id: o.id,
+          orderId: o.orderId,
+          paymentId: null,
+          amount: o.amount,
+          currency: o.currency || 'INR',
+          status: o.status || 'SUCCESS',
+          paymentMethod: o.paymentMethod || 'RAZORPAY',
+          createdAt: o.createdAt || new Date().toISOString(),
+          verifiedAt: o.createdAt || new Date().toISOString(),
+          courseTitle: o.courseTitle || 'Masterclass Subscription',
+          studentName: o.studentName || 'Student',
+          studentEmail: null,
+          studentPhone: o.studentPhone || '',
+        });
+      }
 
       const courseBreakdown: CourseRevenueRecord[] = [
         {

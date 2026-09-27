@@ -575,19 +575,19 @@ export class AdminAnalyticsController {
         };
       });
 
-      // 5. Course Subscription & Revenue Breakdown
+      // 5. Course Subscription & Revenue Breakdown (Strictly Deduplicated by Course Title)
       const courseRevRes = await db.query(`
         SELECT 
-          c.id as course_id,
+          MIN(c.id::text) as course_id,
           c.title as course_title,
-          c.instructor_name,
-          c.price,
+          COALESCE(c.instructor_name, 'Academic Faculty') as instructor_name,
+          MAX(c.price) as price,
           COUNT(p.id) as orders_count,
           COALESCE(SUM(p.amount), 0) as gross_revenue
         FROM courses c
         JOIN payments p ON p.course_id = c.id AND p.status::text IN ('SUCCESS', 'MANUALLY_VERIFIED')
         WHERE c.deleted_at IS NULL
-        GROUP BY c.id, c.title, c.instructor_name, c.price
+        GROUP BY c.title, COALESCE(c.instructor_name, 'Academic Faculty')
         ORDER BY gross_revenue DESC
       `);
 

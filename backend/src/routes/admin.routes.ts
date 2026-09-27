@@ -87,8 +87,9 @@ router.get('/notifications', NotificationController.listAdminNotifications);
 router.post('/notifications', NotificationController.sendBroadcast);
 router.delete('/notifications/:id', NotificationController.deleteNotification);
 
-// Section 25: Master Dashboard Analytics Overview
+// Section 25 & 36: Master Dashboard & Financial Analytics Overview
 router.get('/analytics/overview', AdminAnalyticsController.getAnalyticsOverview);
+router.get('/analytics/finances', AdminAnalyticsController.getFinancialDashboardAnalytics);
 
 // Section 32: Student Progress Monitoring & Course Engagement
 router.get('/students/:id/progress', AdminAnalyticsController.getStudentProgress);

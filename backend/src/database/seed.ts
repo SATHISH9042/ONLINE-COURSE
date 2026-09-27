@@ -444,6 +444,60 @@ export async function seedDatabase() {
     console.log('[Seed] Completed Live Class with recorded session created.');
   }
 
+  // ---------------------------------------------------------------------------
+  // 6. Seed Sample Financial Payments & Ledger (Section 36)
+  // ---------------------------------------------------------------------------
+  const payCountRes = await db.query('SELECT COUNT(*) as count FROM payments');
+  if (parseInt(payCountRes.rows[0].count, 10) < 5) {
+    const studentUserRes = await db.query("SELECT id FROM users WHERE role = 'STUDENT' LIMIT 5");
+    const allCoursesRes = await db.query('SELECT id, price, title FROM courses');
+
+    if (studentUserRes.rowCount > 0 && allCoursesRes.rowCount > 0) {
+      const studentId = studentUserRes.rows[0].id;
+      const c1 = allCoursesRes.rows[0];
+      const c2 = allCoursesRes.rows[1] || c1;
+
+      const sampleRecords = [
+        { monthsAgo: 8, amt: 9999, method: 'RAZORPAY', status: 'SUCCESS', cId: c1.id },
+        { monthsAgo: 7, amt: 14999, method: 'UPI_QR', status: 'MANUALLY_VERIFIED', cId: c2.id },
+        { monthsAgo: 6, amt: 9999, method: 'CARD', status: 'SUCCESS', cId: c1.id },
+        { monthsAgo: 5, amt: 14999, method: 'RAZORPAY', status: 'SUCCESS', cId: c2.id },
+        { monthsAgo: 4, amt: 19998, method: 'UPI_QR', status: 'MANUALLY_VERIFIED', cId: c1.id },
+        { monthsAgo: 3, amt: 9999, method: 'RAZORPAY', status: 'SUCCESS', cId: c1.id },
+        { monthsAgo: 2, amt: 14999, method: 'CARD', status: 'SUCCESS', cId: c2.id },
+        { monthsAgo: 1, amt: 29998, method: 'RAZORPAY', status: 'SUCCESS', cId: c1.id },
+        { monthsAgo: 0, amt: 14999, method: 'UPI_QR', status: 'MANUALLY_VERIFIED', cId: c2.id },
+        { monthsAgo: 0, amt: 9999, method: 'RAZORPAY', status: 'SUCCESS', cId: c1.id },
+      ];
+
+      for (let i = 0; i < sampleRecords.length; i++) {
+        const item = sampleRecords[i];
+        const date = new Date();
+        date.setMonth(date.getMonth() - item.monthsAgo);
+        date.setDate(10 + (i % 15));
+
+        await db.query(
+          `INSERT INTO payments (
+             student_id, course_id, amount, currency, status, payment_method,
+             order_id, payment_id, created_at, verified_at
+           )
+           VALUES ($1, $2, $3, 'INR', $4, $5, $6, $7, $8, $8)`,
+          [
+            studentId,
+            item.cId,
+            item.amt,
+            item.status,
+            item.method,
+            `order_lms_${Date.now()}_${i}`,
+            `pay_lms_${Date.now()}_${i}`,
+            date.toISOString(),
+          ]
+        );
+      }
+      console.log('[Seed] Sample historical payments created for financial dashboard.');
+    }
+  }
+
   console.log('[Seed] Database seeding completed successfully.');
 }
 

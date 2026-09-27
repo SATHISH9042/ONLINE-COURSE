@@ -165,4 +165,101 @@ export const adminAnalyticsService = {
       meta: (res as any).meta || { total: 0, page: 1, limit: 25, totalPages: 1 },
     };
   },
+
+  async getFinancialAnalytics(): Promise<FinancialDashboardData> {
+    const res = await api.get<FinancialDashboardData>('/admin/analytics/finances');
+    if (!res.success || !res.data) {
+      throw new Error(res.message || 'Failed to fetch financial analytics.');
+    }
+    return res.data;
+  },
 };
+
+export interface FinancialSummary {
+  grossRevenue: number;
+  totalRefunded: number;
+  netRevenue: number;
+  estimatedExpenses: number;
+  netProfit: number;
+  profitMarginPercent: number;
+  currentMrr: number;
+  annualRunRate: number;
+  mrrGrowthPercent: number;
+  avgOrderValue: number;
+  totalTransactions: number;
+  successfulTransactions: number;
+  pendingTransactions: number;
+  refundedTransactions: number;
+  payingCustomers: number;
+}
+
+export interface MonthlyFinancialRecord {
+  monthKey: string;
+  monthLabel: string;
+  year: number;
+  grossRevenue: number;
+  refunds: number;
+  netRevenue: number;
+  estimatedExpenses: number;
+  netProfit: number;
+  profitMarginPercent: number;
+  ordersCount: number;
+  payingStudentsCount: number;
+  growthPercent: number;
+}
+
+export interface YearlyFinancialRecord {
+  year: number;
+  grossRevenue: number;
+  refunds: number;
+  netRevenue: number;
+  estimatedExpenses: number;
+  netProfit: number;
+  profitMarginPercent: number;
+  ordersCount: number;
+  uniqueStudentsCount: number;
+}
+
+export interface CourseRevenueRecord {
+  courseId: string;
+  courseTitle: string;
+  instructorName: string;
+  unitPrice: number;
+  ordersCount: number;
+  grossRevenue: number;
+  netProfit: number;
+  revenueSharePercent: number;
+}
+
+export interface PaymentMethodRecord {
+  method: string;
+  count: number;
+  totalAmount: number;
+  percent: number;
+}
+
+export interface FinancialLedgerEntry {
+  id: string;
+  orderId: string;
+  paymentId: string | null;
+  amount: number;
+  currency: string;
+  status: string;
+  paymentMethod: string;
+  createdAt: string;
+  verifiedAt: string | null;
+  courseTitle: string;
+  studentName: string;
+  studentEmail: string | null;
+  studentPhone: string;
+}
+
+export interface FinancialDashboardData {
+  summary: FinancialSummary;
+  monthlyRecords: MonthlyFinancialRecord[];
+  yearlyRecords: YearlyFinancialRecord[];
+  courseBreakdown: CourseRevenueRecord[];
+  paymentMethodBreakdown: PaymentMethodRecord[];
+  ledgerEntries: FinancialLedgerEntry[];
+}
+

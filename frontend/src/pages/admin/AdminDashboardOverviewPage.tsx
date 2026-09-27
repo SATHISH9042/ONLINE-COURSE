@@ -87,6 +87,13 @@ export const AdminDashboardOverviewPage: React.FC = () => {
 
         <div className="flex items-center space-x-3">
           <Link
+            to="/admin/finances"
+            className="inline-flex items-center px-4 py-2 border border-emerald-200 rounded-xl text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 shadow-xs transition-colors"
+          >
+            <TrendingUp className="w-3.5 h-3.5 mr-1.5 text-emerald-600" />
+            Financial P&L
+          </Link>
+          <Link
             to="/admin/audit-logs"
             className="inline-flex items-center px-4 py-2 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 shadow-xs"
           >
@@ -120,18 +127,22 @@ export const AdminDashboardOverviewPage: React.FC = () => {
         </div>
 
         {/* Total Revenue */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-2">
+        <Link
+          to="/admin/finances"
+          className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-2 hover:border-emerald-300 hover:shadow-md transition-all group block"
+        >
           <div className="flex items-center justify-between text-slate-500">
             <span className="text-xs font-semibold">Gross Tuition Revenue</span>
-            <IndianRupee className="w-4 h-4 text-emerald-600" />
+            <IndianRupee className="w-4 h-4 text-emerald-600 group-hover:scale-110 transition-transform" />
           </div>
           <div className="text-2xl font-black text-slate-900">
             ₹{metrics.totalRevenue.toLocaleString('en-IN')}
           </div>
-          <div className="text-[11px] text-emerald-600 font-semibold">
-            ₹{metrics.todaySales.toLocaleString('en-IN')} earned today
+          <div className="flex items-center justify-between text-[11px] text-emerald-600 font-semibold">
+            <span>₹{metrics.todaySales.toLocaleString('en-IN')} today</span>
+            <span className="text-brand-600 font-bold">P&L Studio &rarr;</span>
           </div>
-        </div>
+        </Link>
 
         {/* Active Courses & Enrollments */}
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-2">

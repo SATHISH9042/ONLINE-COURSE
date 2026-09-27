@@ -22,6 +22,8 @@ import {
   Send,
   Eye,
   Sparkles,
+  TrendingUp,
+  DollarSign,
 } from 'lucide-react';
 import { adminAnalyticsService } from '../services/adminAnalyticsService';
 
@@ -56,6 +58,7 @@ export const AdminLayout: React.FC = () => {
 
   const navItems = [
     { label: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
+    { label: 'Financial & Profit', path: '/admin/finances', icon: TrendingUp },
     { label: 'Course Studio', path: '/admin/courses', icon: BookOpen },
     {
       label: 'Pending Approvals',
@@ -72,6 +75,13 @@ export const AdminLayout: React.FC = () => {
   ];
 
   const quickActions = [
+    {
+      label: 'Financial P&L',
+      path: '/admin/finances',
+      icon: DollarSign,
+      desc: 'Profit & revenue stats',
+      color: 'text-emerald-600 bg-emerald-50 hover:bg-emerald-100 border-emerald-200',
+    },
     {
       label: 'Review Clearances',
       path: '/admin/pending-students',

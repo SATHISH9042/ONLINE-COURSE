@@ -437,6 +437,258 @@ export class AdminAnalyticsController {
       next(err);
     }
   }
+
+  // ---------------------------------------------------------------------------
+  // 4. FINANCIAL DASHBOARD & PROFIT/SUBSCRIPTION ANALYTICS (Section 36)
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Section 36: Dedicated Financial Dashboard Analytics
+   * Profit & loss, MRR/ARR, monthly and yearly records, course subscription revenue breakdown.
+   */
+  static async getFinancialDashboardAnalytics(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      // 1. All-time Financial KPI Summary
+      const summaryRes = await db.query(`
+        SELECT 
+          COALESCE(SUM(amount) FILTER (WHERE status IN ('SUCCESS', 'MANUALLY_VERIFIED')), 0) as gross_revenue,
+          COALESCE(SUM(amount) FILTER (WHERE status = 'REFUNDED'), 0) as total_refunded,
+          COALESCE(SUM(amount) FILTER (WHERE status = 'PENDING'), 0) as total_pending,
+          COALESCE(SUM(amount) FILTER (WHERE status = 'FAILED'), 0) as total_failed,
+          COUNT(*) FILTER (WHERE status IN ('SUCCESS', 'MANUALLY_VERIFIED')) as successful_transactions,
+          COUNT(*) FILTER (WHERE status = 'PENDING') as pending_transactions,
+          COUNT(*) FILTER (WHERE status = 'REFUNDED') as refunded_transactions,
+          COUNT(*) as total_transactions,
+          COUNT(DISTINCT student_id) FILTER (WHERE status IN ('SUCCESS', 'MANUALLY_VERIFIED')) as paying_customers
+        FROM payments
+      `);
+      const s = summaryRes.rows[0];
+      const grossRevenue = parseFloat(s.gross_revenue) || 0;
+      const totalRefunded = parseFloat(s.total_refunded) || 0;
+      const netRevenue = Math.max(grossRevenue - totalRefunded, 0);
+
+      // Operational overhead (approx 12% across payment gateways, servers, video delivery)
+      const estimatedExpenses = Math.round(netRevenue * 0.12 * 100) / 100;
+      const netProfit = Math.max(netRevenue - estimatedExpenses, 0);
+      const profitMarginPercent = netRevenue > 0 ? Math.round((netProfit / netRevenue) * 100) : 0;
+      const successfulCount = parseInt(s.successful_transactions, 10) || 0;
+      const avgOrderValue = successfulCount > 0 ? Math.round(netRevenue / successfulCount) : 0;
+
+      // 2. Current Month vs Previous Month (MoM MRR & Growth)
+      const currentMonthRes = await db.query(`
+        SELECT 
+          COALESCE(SUM(amount), 0) as current_mrr,
+          COUNT(*) as current_orders
+        FROM payments
+        WHERE status IN ('SUCCESS', 'MANUALLY_VERIFIED')
+          AND created_at >= DATE_TRUNC('month', CURRENT_DATE)
+      `);
+      const prevMonthRes = await db.query(`
+        SELECT 
+          COALESCE(SUM(amount), 0) as prev_mrr,
+          COUNT(*) as prev_orders
+        FROM payments
+        WHERE status IN ('SUCCESS', 'MANUALLY_VERIFIED')
+          AND created_at >= DATE_TRUNC('month', CURRENT_DATE - INTERVAL '1 month')
+          AND created_at < DATE_TRUNC('month', CURRENT_DATE)
+      `);
+      const currentMrr = parseFloat(currentMonthRes.rows[0].current_mrr) || 0;
+      const prevMrr = parseFloat(prevMonthRes.rows[0].prev_mrr) || 0;
+      const mrrGrowthPercent = prevMrr > 0 ? Math.round(((currentMrr - prevMrr) / prevMrr) * 100) : 0;
+      const annualRunRate = currentMrr * 12;
+
+      // 3. Monthly Breakdown (Monthly Trends & Performance)
+      const monthlyRes = await db.query(`
+        SELECT 
+          TO_CHAR(DATE_TRUNC('month', created_at), 'YYYY-MM') as month_key,
+          TO_CHAR(DATE_TRUNC('month', created_at), 'Mon YYYY') as month_label,
+          EXTRACT(YEAR FROM created_at) as year_num,
+          EXTRACT(MONTH FROM created_at) as month_num,
+          COALESCE(SUM(amount) FILTER (WHERE status IN ('SUCCESS', 'MANUALLY_VERIFIED')), 0) as gross,
+          COALESCE(SUM(amount) FILTER (WHERE status = 'REFUNDED'), 0) as refunds,
+          COUNT(*) FILTER (WHERE status IN ('SUCCESS', 'MANUALLY_VERIFIED')) as orders,
+          COUNT(DISTINCT student_id) FILTER (WHERE status IN ('SUCCESS', 'MANUALLY_VERIFIED')) as students
+        FROM payments
+        WHERE created_at >= NOW() - INTERVAL '12 months'
+        GROUP BY DATE_TRUNC('month', created_at), TO_CHAR(DATE_TRUNC('month', created_at), 'YYYY-MM'), TO_CHAR(DATE_TRUNC('month', created_at), 'Mon YYYY'), EXTRACT(YEAR FROM created_at), EXTRACT(MONTH FROM created_at)
+        ORDER BY month_key ASC
+      `);
+
+      let prevMonthGross = 0;
+      const monthlyRecords = monthlyRes.rows.map((row) => {
+        const gross = parseFloat(row.gross) || 0;
+        const refunds = parseFloat(row.refunds) || 0;
+        const net = Math.max(gross - refunds, 0);
+        const exp = Math.round(net * 0.12 * 100) / 100;
+        const profit = Math.max(net - exp, 0);
+        const margin = net > 0 ? Math.round((profit / net) * 100) : 0;
+        const growth = prevMonthGross > 0 ? Math.round(((gross - prevMonthGross) / prevMonthGross) * 100) : 0;
+        prevMonthGross = gross;
+
+        return {
+          monthKey: row.month_key,
+          monthLabel: row.month_label,
+          year: parseInt(row.year_num, 10),
+          grossRevenue: gross,
+          refunds,
+          netRevenue: net,
+          estimatedExpenses: exp,
+          netProfit: profit,
+          profitMarginPercent: margin,
+          ordersCount: parseInt(row.orders, 10) || 0,
+          payingStudentsCount: parseInt(row.students, 10) || 0,
+          growthPercent: growth,
+        };
+      });
+
+      // 4. Yearly Breakdown (Year-over-Year Performance)
+      const yearlyRes = await db.query(`
+        SELECT 
+          EXTRACT(YEAR FROM created_at) as year,
+          COALESCE(SUM(amount) FILTER (WHERE status IN ('SUCCESS', 'MANUALLY_VERIFIED')), 0) as gross,
+          COALESCE(SUM(amount) FILTER (WHERE status = 'REFUNDED'), 0) as refunds,
+          COUNT(*) FILTER (WHERE status IN ('SUCCESS', 'MANUALLY_VERIFIED')) as orders,
+          COUNT(DISTINCT student_id) FILTER (WHERE status IN ('SUCCESS', 'MANUALLY_VERIFIED')) as students
+        FROM payments
+        GROUP BY EXTRACT(YEAR FROM created_at)
+        ORDER BY year DESC
+      `);
+
+      const yearlyRecords = yearlyRes.rows.map((row) => {
+        const gross = parseFloat(row.gross) || 0;
+        const refunds = parseFloat(row.refunds) || 0;
+        const net = Math.max(gross - refunds, 0);
+        const exp = Math.round(net * 0.12 * 100) / 100;
+        const profit = Math.max(net - exp, 0);
+        const margin = net > 0 ? Math.round((profit / net) * 100) : 0;
+
+        return {
+          year: parseInt(row.year, 10),
+          grossRevenue: gross,
+          refunds,
+          netRevenue: net,
+          estimatedExpenses: exp,
+          netProfit: profit,
+          profitMarginPercent: margin,
+          ordersCount: parseInt(row.orders, 10) || 0,
+          uniqueStudentsCount: parseInt(row.students, 10) || 0,
+        };
+      });
+
+      // 5. Course Subscription & Revenue Breakdown
+      const courseRevRes = await db.query(`
+        SELECT 
+          c.id as course_id,
+          c.title as course_title,
+          c.instructor_name,
+          c.price,
+          COUNT(p.id) as orders_count,
+          COALESCE(SUM(p.amount), 0) as gross_revenue
+        FROM courses c
+        JOIN payments p ON p.course_id = c.id AND p.status IN ('SUCCESS', 'MANUALLY_VERIFIED')
+        GROUP BY c.id, c.title, c.instructor_name, c.price
+        ORDER BY gross_revenue DESC
+      `);
+
+      const courseBreakdown = courseRevRes.rows.map((r) => {
+        const rev = parseFloat(r.gross_revenue) || 0;
+        const exp = Math.round(rev * 0.12 * 100) / 100;
+        const profit = rev - exp;
+        return {
+          courseId: r.course_id,
+          courseTitle: r.course_title,
+          instructorName: r.instructor_name,
+          unitPrice: parseFloat(r.price) || 0,
+          ordersCount: parseInt(r.orders_count, 10) || 0,
+          grossRevenue: rev,
+          netProfit: profit,
+          revenueSharePercent: grossRevenue > 0 ? Math.round((rev / grossRevenue) * 100) : 0,
+        };
+      });
+
+      // 6. Payment Method Breakdown
+      const methodRes = await db.query(`
+        SELECT 
+          payment_method,
+          COUNT(*) as count,
+          COALESCE(SUM(amount), 0) as total_amount
+        FROM payments
+        WHERE status IN ('SUCCESS', 'MANUALLY_VERIFIED')
+        GROUP BY payment_method
+        ORDER BY total_amount DESC
+      `);
+
+      const paymentMethodBreakdown = methodRes.rows.map((r) => ({
+        method: r.payment_method || 'OTHER',
+        count: parseInt(r.count, 10) || 0,
+        totalAmount: parseFloat(r.total_amount) || 0,
+        percent: grossRevenue > 0 ? Math.round(((parseFloat(r.total_amount) || 0) / grossRevenue) * 100) : 0,
+      }));
+
+      // 7. Recent Financial Ledger Entries (Audit trail)
+      const ledgerRes = await db.query(`
+        SELECT 
+          p.id, p.order_id, p.payment_id, p.amount, p.currency, p.status, p.payment_method,
+          p.created_at, p.verified_at,
+          c.title as course_title,
+          sp.full_name as student_name,
+          u.phone as student_phone,
+          u.email as student_email
+        FROM payments p
+        JOIN courses c ON c.id = p.course_id
+        JOIN users u ON u.id = p.student_id
+        LEFT JOIN student_profiles sp ON sp.user_id = u.id
+        ORDER BY p.created_at DESC
+        LIMIT 30
+      `);
+
+      const ledgerEntries = ledgerRes.rows.map((r) => ({
+        id: r.id,
+        orderId: r.order_id,
+        paymentId: r.payment_id,
+        amount: parseFloat(r.amount),
+        currency: r.currency,
+        status: r.status,
+        paymentMethod: r.payment_method,
+        createdAt: r.created_at,
+        verifiedAt: r.verified_at,
+        courseTitle: r.course_title,
+        studentName: r.student_name || 'Anonymous Student',
+        studentEmail: r.student_email,
+        studentPhone: r.student_phone,
+      }));
+
+      res.status(200).json({
+        success: true,
+        data: {
+          summary: {
+            grossRevenue,
+            totalRefunded,
+            netRevenue,
+            estimatedExpenses,
+            netProfit,
+            profitMarginPercent,
+            currentMrr,
+            annualRunRate,
+            mrrGrowthPercent,
+            avgOrderValue,
+            totalTransactions: parseInt(s.total_transactions, 10) || 0,
+            successfulTransactions: successfulCount,
+            pendingTransactions: parseInt(s.pending_transactions, 10) || 0,
+            refundedTransactions: parseInt(s.refunded_transactions, 10) || 0,
+            payingCustomers: parseInt(s.paying_customers, 10) || 0,
+          },
+          monthlyRecords,
+          yearlyRecords,
+          courseBreakdown,
+          paymentMethodBreakdown,
+          ledgerEntries,
+        },
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
 }
 
 /**

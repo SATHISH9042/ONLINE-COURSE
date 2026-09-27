@@ -322,7 +322,7 @@ export const LiveRoomPage: React.FC = () => {
       if (localVideoRef.current.srcObject !== localStreamRef.current) {
         localVideoRef.current.srcObject = localStreamRef.current;
       }
-      localVideoRef.current.play().catch(() => {});
+      localVideoRef.current.play().catch(() => { });
     }
   }, [isVideoOn]);
 
@@ -332,7 +332,7 @@ export const LiveRoomPage: React.FC = () => {
       if (screenVideoRef.current.srcObject !== screenStreamRef.current) {
         screenVideoRef.current.srcObject = screenStreamRef.current;
       }
-      screenVideoRef.current.play().catch(() => {});
+      screenVideoRef.current.play().catch(() => { });
     }
   }, [isScreenSharing]);
 
@@ -435,7 +435,7 @@ export const LiveRoomPage: React.FC = () => {
 
         if (localVideoRef.current) {
           localVideoRef.current.srcObject = localStreamRef.current;
-          await localVideoRef.current.play().catch(() => {});
+          await localVideoRef.current.play().catch(() => { });
         }
 
         setIsVideoOn(true);
@@ -553,7 +553,7 @@ export const LiveRoomPage: React.FC = () => {
 
         if (screenVideoRef.current) {
           screenVideoRef.current.srcObject = stream;
-          await screenVideoRef.current.play().catch(() => {});
+          await screenVideoRef.current.play().catch(() => { });
         }
         setIsScreenSharing(true);
 
@@ -691,10 +691,10 @@ export const LiveRoomPage: React.FC = () => {
   // Toggle Fullscreen
   const handleToggleFullscreen = () => {
     if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().catch(() => {});
+      document.documentElement.requestFullscreen().catch(() => { });
       setIsFullscreen(true);
     } else {
-      document.exitFullscreen().catch(() => {});
+      document.exitFullscreen().catch(() => { });
       setIsFullscreen(false);
     }
   };
@@ -839,13 +839,12 @@ export const LiveRoomPage: React.FC = () => {
       {notice && (
         <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 animate-bounce">
           <div
-            className={`px-4 py-2.5 rounded-xl shadow-2xl border text-xs font-semibold flex items-center space-x-2 ${
-              notice.type === 'success'
+            className={`px-4 py-2.5 rounded-xl shadow-2xl border text-xs font-semibold flex items-center space-x-2 ${notice.type === 'success'
                 ? 'bg-emerald-950/90 border-emerald-500/50 text-emerald-200'
                 : notice.type === 'warning'
-                ? 'bg-amber-950/90 border-amber-500/50 text-amber-200'
-                : 'bg-indigo-950/90 border-indigo-500/50 text-indigo-200'
-            }`}
+                  ? 'bg-amber-950/90 border-amber-500/50 text-amber-200'
+                  : 'bg-indigo-950/90 border-indigo-500/50 text-indigo-200'
+              }`}
           >
             {notice.type === 'success' ? (
               <CheckCircle2 className="w-4 h-4 text-emerald-400" />
@@ -912,41 +911,41 @@ export const LiveRoomPage: React.FC = () => {
                 </div>
               )}
 
-                {/* Hand Raised Banner for current student */}
-                {handRaised && (
-                  <div className="absolute top-4 left-4 bg-amber-500 text-slate-950 font-bold px-3 py-1.5 rounded-xl shadow-lg flex items-center space-x-1.5 text-xs animate-bounce">
-                    <Hand className="w-4 h-4 fill-slate-950" />
-                    <span>Hand Raised (Waiting for host)</span>
-                  </div>
-                )}
+              {/* Hand Raised Banner for current student */}
+              {handRaised && (
+                <div className="absolute top-4 left-4 bg-amber-500 text-slate-950 font-bold px-3 py-1.5 rounded-xl shadow-lg flex items-center space-x-1.5 text-xs animate-bounce">
+                  <Hand className="w-4 h-4 fill-slate-950" />
+                  <span>Hand Raised (Waiting for host)</span>
+                </div>
+              )}
 
-                {/* Speaking lock indicator badge for students */}
-                {!isHost && (
-                  <div className="absolute top-4 right-4 bg-slate-900/80 backdrop-blur-md px-3 py-1.5 rounded-xl border border-slate-700 text-xs font-medium flex items-center space-x-2">
-                    {canStudentSpeak ? (
-                      <span className="text-emerald-400 flex items-center space-x-1 font-semibold">
-                        <Unlock className="w-3.5 h-3.5" />
-                        <span>Mic Permitted</span>
-                      </span>
-                    ) : (
-                      <span className="text-amber-400 flex items-center space-x-1 font-semibold">
-                        <Lock className="w-3.5 h-3.5" />
-                        <span>Mic Locked by Host</span>
-                      </span>
-                    )}
-                  </div>
-                )}
-
-                {/* Current User Tile Tag */}
-                <div className="absolute bottom-4 left-4 bg-slate-900/80 backdrop-blur-md px-3 py-1.5 rounded-xl border border-slate-700/80 text-xs text-white flex items-center space-x-2">
-                  <span className="font-semibold">{user?.fullName || 'You'} (You)</span>
-                  {isMicOn ? (
-                    <Mic className="w-3.5 h-3.5 text-emerald-400" />
+              {/* Speaking lock indicator badge for students */}
+              {!isHost && (
+                <div className="absolute top-4 right-4 bg-slate-900/80 backdrop-blur-md px-3 py-1.5 rounded-xl border border-slate-700 text-xs font-medium flex items-center space-x-2">
+                  {canStudentSpeak ? (
+                    <span className="text-emerald-400 flex items-center space-x-1 font-semibold">
+                      <Unlock className="w-3.5 h-3.5" />
+                      <span>Mic Permitted</span>
+                    </span>
                   ) : (
-                    <MicOff className="w-3.5 h-3.5 text-red-400" />
+                    <span className="text-amber-400 flex items-center space-x-1 font-semibold">
+                      <Lock className="w-3.5 h-3.5" />
+                      <span>Mic Locked by Host</span>
+                    </span>
                   )}
                 </div>
+              )}
+
+              {/* Current User Tile Tag */}
+              <div className="absolute bottom-4 left-4 bg-slate-900/80 backdrop-blur-md px-3 py-1.5 rounded-xl border border-slate-700/80 text-xs text-white flex items-center space-x-2">
+                <span className="font-semibold">{user?.fullName || 'You'} (You)</span>
+                {isMicOn ? (
+                  <Mic className="w-3.5 h-3.5 text-emerald-400" />
+                ) : (
+                  <MicOff className="w-3.5 h-3.5 text-red-400" />
+                )}
               </div>
+            </div>
 
             {/* Raised Hands Quick Alert for Host */}
             {isHost && raisedHandsList.length > 0 && (
@@ -974,21 +973,19 @@ export const LiveRoomPage: React.FC = () => {
               <div className="flex items-center space-x-2">
                 <button
                   onClick={() => setActivePanel('chat')}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors ${
-                    activePanel === 'chat'
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors ${activePanel === 'chat'
                       ? 'bg-brand-600 text-white'
                       : 'text-slate-400 hover:text-white hover:bg-slate-800'
-                  }`}
+                    }`}
                 >
                   Messages
                 </button>
                 <button
                   onClick={() => setActivePanel('people')}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors flex items-center space-x-1.5 ${
-                    activePanel === 'people'
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors flex items-center space-x-1.5 ${activePanel === 'people'
                       ? 'bg-brand-600 text-white'
                       : 'text-slate-400 hover:text-white hover:bg-slate-800'
-                  }`}
+                    }`}
                 >
                   <span>People</span>
                   <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-800 text-slate-300">
@@ -1062,13 +1059,12 @@ export const LiveRoomPage: React.FC = () => {
                           </div>
 
                           <div
-                            className={`rounded-2xl px-3.5 py-2 text-xs leading-relaxed max-w-[85%] break-words ${
-                              isOwn
+                            className={`rounded-2xl px-3.5 py-2 text-xs leading-relaxed max-w-[85%] break-words ${isOwn
                                 ? 'bg-brand-600 text-white rounded-tr-xs'
                                 : msg.is_pinned
-                                ? 'bg-amber-950/80 border border-amber-500/40 text-amber-200 rounded-tl-xs'
-                                : 'bg-slate-800 text-slate-200 rounded-tl-xs'
-                            }`}
+                                  ? 'bg-amber-950/80 border border-amber-500/40 text-amber-200 rounded-tl-xs'
+                                  : 'bg-slate-800 text-slate-200 rounded-tl-xs'
+                              }`}
                           >
                             {msg.is_pinned && (
                               <div className="flex items-center space-x-1 text-[10px] font-bold text-amber-400 mb-1">
@@ -1236,11 +1232,10 @@ export const LiveRoomPage: React.FC = () => {
                             <button
                               onClick={() => handleSetSpeakingPermission(p.userId, !p.canSpeak)}
                               title={p.canSpeak ? 'Click to Mute Student' : 'Allow Student to Speak'}
-                              className={`px-2 py-1 rounded-lg text-[10px] font-bold flex items-center space-x-1 transition-all ${
-                                p.canSpeak
+                              className={`px-2 py-1 rounded-lg text-[10px] font-bold flex items-center space-x-1 transition-all ${p.canSpeak
                                   ? 'bg-emerald-600/20 text-emerald-300 border border-emerald-500/40 hover:bg-red-600/20 hover:text-red-300 hover:border-red-500/40'
                                   : 'bg-slate-700 text-slate-300 hover:bg-emerald-600 hover:text-white'
-                              }`}
+                                }`}
                             >
                               {p.canSpeak ? (
                                 <>
@@ -1291,16 +1286,15 @@ export const LiveRoomPage: React.FC = () => {
               !canStudentSpeak
                 ? 'Microphone locked by host. Raise hand to speak.'
                 : isMicOn
-                ? 'Turn off microphone'
-                : 'Turn on microphone'
+                  ? 'Turn off microphone'
+                  : 'Turn on microphone'
             }
-            className={`w-11 h-11 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all ${
-              !canStudentSpeak
+            className={`w-11 h-11 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all ${!canStudentSpeak
                 ? 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed opacity-70'
                 : isMicOn
-                ? 'bg-slate-800 hover:bg-slate-700 text-white border border-slate-700'
-                : 'bg-red-600 hover:bg-red-500 text-white shadow-lg shadow-red-600/30'
-            }`}
+                  ? 'bg-slate-800 hover:bg-slate-700 text-white border border-slate-700'
+                  : 'bg-red-600 hover:bg-red-500 text-white shadow-lg shadow-red-600/30'
+              }`}
           >
             {!canStudentSpeak ? (
               <Lock className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400" />
@@ -1315,11 +1309,10 @@ export const LiveRoomPage: React.FC = () => {
           <button
             onClick={handleToggleCamera}
             title={isVideoOn ? 'Turn off camera' : 'Turn on camera'}
-            className={`w-11 h-11 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all ${
-              isVideoOn
+            className={`w-11 h-11 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all ${isVideoOn
                 ? 'bg-slate-800 hover:bg-slate-700 text-white border border-slate-700'
                 : 'bg-red-600 hover:bg-red-500 text-white shadow-lg shadow-red-600/30'
-            }`}
+              }`}
           >
             {isVideoOn ? (
               <Video className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400" />
@@ -1332,11 +1325,10 @@ export const LiveRoomPage: React.FC = () => {
           <button
             onClick={handleToggleScreenShare}
             title={isScreenSharing ? 'Stop presenting' : 'Present your screen'}
-            className={`w-11 h-11 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all ${
-              isScreenSharing
+            className={`w-11 h-11 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all ${isScreenSharing
                 ? 'bg-brand-600 hover:bg-brand-500 text-white shadow-lg shadow-brand-600/30'
                 : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700'
-            }`}
+              }`}
           >
             {isScreenSharing ? (
               <MonitorOff className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
@@ -1350,11 +1342,10 @@ export const LiveRoomPage: React.FC = () => {
             <button
               onClick={handleToggleRaiseHand}
               title={handRaised ? 'Lower hand' : 'Raise hand to request speaking'}
-              className={`w-11 h-11 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all ${
-                handRaised
+              className={`w-11 h-11 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all ${handRaised
                   ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-lg shadow-amber-500/30'
                   : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700'
-              }`}
+                }`}
             >
               <Hand className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
@@ -1366,16 +1357,14 @@ export const LiveRoomPage: React.FC = () => {
               onClick={() => handleControlRecording(sessionData.isRecording ? 'STOP' : 'START')}
               disabled={recordingBusy}
               title={sessionData.isRecording ? 'Stop Recording' : 'Start Recording'}
-              className={`w-11 h-11 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all ${
-                sessionData.isRecording
+              className={`w-11 h-11 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all ${sessionData.isRecording
                   ? 'bg-red-600 hover:bg-red-700 text-white animate-pulse'
                   : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700'
-              }`}
+                }`}
             >
               <Circle
-                className={`w-4 h-4 sm:w-5 sm:h-5 ${
-                  sessionData.isRecording ? 'fill-white' : 'text-red-500 fill-red-500'
-                }`}
+                className={`w-4 h-4 sm:w-5 sm:h-5 ${sessionData.isRecording ? 'fill-white' : 'text-red-500 fill-red-500'
+                  }`}
               />
             </button>
           )}
@@ -1396,11 +1385,10 @@ export const LiveRoomPage: React.FC = () => {
           <button
             onClick={() => setActivePanel((prev) => (prev === 'people' ? 'none' : 'people'))}
             title="Show Participants & Moderation"
-            className={`p-2.5 sm:p-3 rounded-2xl relative transition-all ${
-              activePanel === 'people'
+            className={`p-2.5 sm:p-3 rounded-2xl relative transition-all ${activePanel === 'people'
                 ? 'bg-brand-600 text-white shadow-lg'
                 : 'bg-slate-800/80 hover:bg-slate-800 text-slate-300 border border-slate-700'
-            }`}
+              }`}
           >
             <Users className="w-4 h-4 sm:w-5 sm:h-5" />
             {raisedHandsList.length > 0 && (
@@ -1414,11 +1402,10 @@ export const LiveRoomPage: React.FC = () => {
           <button
             onClick={() => setActivePanel((prev) => (prev === 'chat' ? 'none' : 'chat'))}
             title="Show In-call Messages"
-            className={`p-2.5 sm:p-3 rounded-2xl relative transition-all ${
-              activePanel === 'chat'
+            className={`p-2.5 sm:p-3 rounded-2xl relative transition-all ${activePanel === 'chat'
                 ? 'bg-brand-600 text-white shadow-lg'
                 : 'bg-slate-800/80 hover:bg-slate-800 text-slate-300 border border-slate-700'
-            }`}
+              }`}
           >
             <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5" />
             {unreadChatCount > 0 && activePanel !== 'chat' && (

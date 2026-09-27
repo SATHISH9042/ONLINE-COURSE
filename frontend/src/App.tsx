@@ -25,6 +25,7 @@ import { NotificationsAdminPage } from './pages/admin/NotificationsAdminPage';
 import { AdminDashboardOverviewPage } from './pages/admin/AdminDashboardOverviewPage';
 import { StudentProgressDetailPage } from './pages/admin/StudentProgressDetailPage';
 import { AuditLogsPage } from './pages/admin/AuditLogsPage';
+import { FinancialDashboardPage } from './pages/admin/FinancialDashboardPage';
 import { LiveRoomPage } from './pages/live/LiveRoomPage';
 
 import { AdminLayout } from './layouts/AdminLayout';
@@ -153,6 +154,7 @@ export const App: React.FC = () => {
           >
             <Route index element={<Navigate to="/admin/dashboard" replace />} />
             <Route path="dashboard" element={<AdminDashboardOverviewPage />} />
+            <Route path="finances" element={<FinancialDashboardPage />} />
             <Route path="courses" element={<CourseListPage />} />
             <Route path="courses/:id/curriculum" element={<CurriculumEditorPage />} />
             <Route path="pending-students" element={<PendingStudentsPage />} />

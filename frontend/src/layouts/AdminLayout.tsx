@@ -179,9 +179,8 @@ export const AdminLayout: React.FC = () => {
       <div className="flex-1 flex w-full">
         {/* DESKTOP LEFT SIDEBAR */}
         <aside
-          className={`hidden lg:flex flex-col border-r border-slate-200 bg-white shrink-0 transition-all duration-300 ${
-            collapsed ? 'w-20' : 'w-72'
-          }`}
+          className={`hidden lg:flex flex-col border-r border-slate-200 bg-white shrink-0 transition-all duration-300 ${collapsed ? 'w-20' : 'w-72'
+            }`}
         >
           {/* Collapse Toggle Bar */}
           <div className="px-4 py-2.5 flex items-center justify-between border-b border-slate-100">
@@ -210,10 +209,9 @@ export const AdminLayout: React.FC = () => {
                     to={item.path}
                     title={collapsed ? item.label : undefined}
                     className={({ isActive }) =>
-                      `flex items-center px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${
-                        isActive
-                          ? 'bg-brand-50 text-brand-700 shadow-2xs border border-brand-200/60'
-                          : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'
+                      `flex items-center px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${isActive
+                        ? 'bg-brand-50 text-brand-700 shadow-2xs border border-brand-200/60'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'
                       } ${collapsed ? 'justify-center' : ''}`
                     }
                   >
@@ -221,9 +219,8 @@ export const AdminLayout: React.FC = () => {
                     {!collapsed && <span className="truncate">{item.label}</span>}
                     {!collapsed && item.badge !== undefined && (
                       <span
-                        className={`ml-auto px-2 py-0.5 rounded-full text-[10px] font-black ${
-                          item.badgeColor || 'bg-brand-100 text-brand-700'
-                        }`}
+                        className={`ml-auto px-2 py-0.5 rounded-full text-[10px] font-black ${item.badgeColor || 'bg-brand-100 text-brand-700'
+                          }`}
                       >
                         {item.badge}
                       </span>
@@ -290,9 +287,8 @@ export const AdminLayout: React.FC = () => {
           <div className="p-3 border-t border-slate-100">
             <button
               onClick={handleLogout}
-              className={`w-full flex items-center px-3 py-2 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 transition-colors ${
-                collapsed ? 'justify-center' : ''
-              }`}
+              className={`w-full flex items-center px-3 py-2 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 transition-colors ${collapsed ? 'justify-center' : ''
+                }`}
               title="Sign Out"
             >
               <LogOut className={`w-4 h-4 shrink-0 ${collapsed ? '' : 'mr-2.5'}`} />
@@ -332,10 +328,9 @@ export const AdminLayout: React.FC = () => {
                         to={item.path}
                         onClick={() => setMobileOpen(false)}
                         className={({ isActive }) =>
-                          `flex items-center px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${
-                            isActive
-                              ? 'bg-brand-50 text-brand-700'
-                              : 'text-slate-600 hover:bg-slate-100'
+                          `flex items-center px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${isActive
+                            ? 'bg-brand-50 text-brand-700'
+                            : 'text-slate-600 hover:bg-slate-100'
                           }`
                         }
                       >
@@ -343,9 +338,8 @@ export const AdminLayout: React.FC = () => {
                         <span>{item.label}</span>
                         {item.badge !== undefined && (
                           <span
-                            className={`ml-auto px-2 py-0.5 rounded-full text-[10px] font-black ${
-                              item.badgeColor || 'bg-brand-100 text-brand-700'
-                            }`}
+                            className={`ml-auto px-2 py-0.5 rounded-full text-[10px] font-black ${item.badgeColor || 'bg-brand-100 text-brand-700'
+                              }`}
                           >
                             {item.badge}
                           </span>

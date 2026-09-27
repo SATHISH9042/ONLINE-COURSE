@@ -191,10 +191,10 @@ export const AdminDashboardOverviewPage: React.FC = () => {
                     <span className="text-xs font-bold text-slate-900">{s.name}</span>
                     <span
                       className={`text-[10px] font-extrabold px-2 py-0.2 rounded-full ${s.status === 'ACTIVE'
-                          ? 'bg-emerald-100 text-emerald-800'
-                          : s.status === 'PENDING_APPROVAL'
-                            ? 'bg-amber-100 text-amber-800'
-                            : 'bg-rose-100 text-rose-800'
+                        ? 'bg-emerald-100 text-emerald-800'
+                        : s.status === 'PENDING_APPROVAL'
+                          ? 'bg-amber-100 text-amber-800'
+                          : 'bg-rose-100 text-rose-800'
                         }`}
                     >
                       {s.status}
@@ -242,10 +242,10 @@ export const AdminDashboardOverviewPage: React.FC = () => {
                     <span className="text-xs font-bold text-slate-900">{o.studentName}</span>
                     <span
                       className={`text-[10px] font-extrabold px-2 py-0.2 rounded-full ${o.status === 'SUCCESS' || o.status === 'MANUALLY_VERIFIED'
-                          ? 'bg-emerald-100 text-emerald-800'
-                          : o.status === 'PENDING'
-                            ? 'bg-amber-100 text-amber-800'
-                            : 'bg-rose-100 text-rose-800'
+                        ? 'bg-emerald-100 text-emerald-800'
+                        : o.status === 'PENDING'
+                          ? 'bg-amber-100 text-amber-800'
+                          : 'bg-rose-100 text-rose-800'
                         }`}
                     >
                       {o.status}

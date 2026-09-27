@@ -150,8 +150,8 @@ export const PendingStudentsPage: React.FC = () => {
       {feedback && (
         <div
           className={`mb-6 p-4 rounded-xl flex items-start ${feedback.type === 'success'
-              ? 'bg-emerald-50 border border-emerald-200 text-emerald-900'
-              : 'bg-rose-50 border border-rose-200 text-rose-900'
+            ? 'bg-emerald-50 border border-emerald-200 text-emerald-900'
+            : 'bg-rose-50 border border-rose-200 text-rose-900'
             }`}
         >
           {feedback.type === 'success' ? (

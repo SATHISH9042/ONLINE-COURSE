@@ -45,9 +45,9 @@ export const AdminDashboardOverviewPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 animate-pulse">
+      <div className="w-full space-y-6 animate-pulse">
         <div className="h-10 bg-slate-200 rounded-lg w-1/4"></div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
           <div className="h-32 bg-slate-200 rounded-2xl"></div>
           <div className="h-32 bg-slate-200 rounded-2xl"></div>
           <div className="h-32 bg-slate-200 rounded-2xl"></div>
@@ -59,7 +59,7 @@ export const AdminDashboardOverviewPage: React.FC = () => {
 
   if (error || !data) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="w-full">
         <div className="bg-red-50 border border-red-200 text-red-700 p-6 rounded-2xl">
           {error || 'Unable to retrieve analytics summary.'}
         </div>
@@ -70,7 +70,7 @@ export const AdminDashboardOverviewPage: React.FC = () => {
   const { metrics, recentStudents, recentOrders, monthlyTrends, systemHealth } = data;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 animate-in fade-in duration-200">
+    <div className="w-full space-y-8 animate-in fade-in duration-200">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-200 pb-5">
         <div>
@@ -104,7 +104,7 @@ export const AdminDashboardOverviewPage: React.FC = () => {
       </div>
 
       {/* 1. TOP METRICS GRID */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
         {/* Total Students */}
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-2">
           <div className="flex items-center justify-between text-slate-500">

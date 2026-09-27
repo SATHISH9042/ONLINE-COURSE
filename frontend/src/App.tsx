@@ -26,6 +26,8 @@ import { AdminDashboardOverviewPage } from './pages/admin/AdminDashboardOverview
 import { StudentProgressDetailPage } from './pages/admin/StudentProgressDetailPage';
 import { AuditLogsPage } from './pages/admin/AuditLogsPage';
 
+import { AdminLayout } from './layouts/AdminLayout';
+
 // Protected route guard for Admin
 const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, isLoading } = useAuth();
@@ -46,12 +48,7 @@ const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     return <Navigate to="/student/home" replace />;
   }
 
-  return (
-    <div className="min-h-screen flex flex-col bg-slate-50">
-      <Navbar />
-      <main className="flex-1">{children}</main>
-    </div>
-  );
+  return <>{children}</>;
 };
 
 // Protected route guard for Student
@@ -121,88 +118,27 @@ export const App: React.FC = () => {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/pending-approval" element={<PendingApprovalPage />} />
 
-          {/* Protected Admin Routes */}
+          {/* Protected Admin Routes under AdminLayout with Left Navigation Sidebar */}
           <Route
-            path="/admin/courses"
+            path="/admin"
             element={
               <AdminRoute>
-                <CourseListPage />
+                <AdminLayout />
               </AdminRoute>
             }
-          />
-          <Route
-            path="/admin/courses/:id/curriculum"
-            element={
-              <AdminRoute>
-                <CurriculumEditorPage />
-              </AdminRoute>
-            }
-          />
-          <Route
-            path="/admin/pending-students"
-            element={
-              <AdminRoute>
-                <PendingStudentsPage />
-              </AdminRoute>
-            }
-          />
-          <Route
-            path="/admin/students"
-            element={
-              <AdminRoute>
-                <AllStudentsPage />
-              </AdminRoute>
-            }
-          />
-          <Route
-            path="/admin/payments"
-            element={
-              <AdminRoute>
-                <PaymentAuditPage />
-              </AdminRoute>
-            }
-          />
-          <Route
-            path="/admin/live-classes"
-            element={
-              <AdminRoute>
-                <LiveClassesAdminPage />
-              </AdminRoute>
-            }
-          />
-          <Route
-            path="/admin/dashboard"
-            element={
-              <AdminRoute>
-                <AdminDashboardOverviewPage />
-              </AdminRoute>
-            }
-          />
-          <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
-          <Route
-            path="/admin/students/:id/progress"
-            element={
-              <AdminRoute>
-                <StudentProgressDetailPage />
-              </AdminRoute>
-            }
-          />
-          <Route
-            path="/admin/audit-logs"
-            element={
-              <AdminRoute>
-                <AuditLogsPage />
-              </AdminRoute>
-            }
-          />
-          <Route
-            path="/admin/notifications"
-            element={
-              <AdminRoute>
-                <NotificationsAdminPage />
-              </AdminRoute>
-            }
-          />
+          >
+            <Route index element={<Navigate to="/admin/dashboard" replace />} />
+            <Route path="dashboard" element={<AdminDashboardOverviewPage />} />
+            <Route path="courses" element={<CourseListPage />} />
+            <Route path="courses/:id/curriculum" element={<CurriculumEditorPage />} />
+            <Route path="pending-students" element={<PendingStudentsPage />} />
+            <Route path="students" element={<AllStudentsPage />} />
+            <Route path="students/:id/progress" element={<StudentProgressDetailPage />} />
+            <Route path="payments" element={<PaymentAuditPage />} />
+            <Route path="live-classes" element={<LiveClassesAdminPage />} />
+            <Route path="notifications" element={<NotificationsAdminPage />} />
+            <Route path="audit-logs" element={<AuditLogsPage />} />
+          </Route>
 
           {/* SECTION 6: Protected Student Routes under StudentLayout */}
           <Route

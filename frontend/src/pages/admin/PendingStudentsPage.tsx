@@ -110,7 +110,7 @@ export const PendingStudentsPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="w-full space-y-6">
       {/* Header section */}
       <div className="md:flex md:items-center md:justify-between mb-8 pb-6 border-b border-slate-200">
         <div>

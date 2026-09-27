@@ -158,8 +158,8 @@ export const LiveClassesPage: React.FC = () => {
         <button
           onClick={() => setActiveTab('all')}
           className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all ${activeTab === 'all'
-              ? 'bg-slate-900 text-white shadow-sm'
-              : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+            ? 'bg-slate-900 text-white shadow-sm'
+            : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
             }`}
         >
           All Sessions ({data.live.length + data.upcoming.length + data.recordings.length})
@@ -167,8 +167,8 @@ export const LiveClassesPage: React.FC = () => {
         <button
           onClick={() => setActiveTab('live')}
           className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all inline-flex items-center space-x-1.5 ${activeTab === 'live'
-              ? 'bg-red-600 text-white shadow-sm'
-              : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+            ? 'bg-red-600 text-white shadow-sm'
+            : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
             }`}
         >
           <Radio className={`w-3.5 h-3.5 ${data.live.length > 0 ? 'text-red-500 animate-pulse' : ''}`} />
@@ -177,8 +177,8 @@ export const LiveClassesPage: React.FC = () => {
         <button
           onClick={() => setActiveTab('upcoming')}
           className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all inline-flex items-center space-x-1.5 ${activeTab === 'upcoming'
-              ? 'bg-brand-600 text-white shadow-sm'
-              : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+            ? 'bg-brand-600 text-white shadow-sm'
+            : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
             }`}
         >
           <Calendar className="w-3.5 h-3.5" />
@@ -187,8 +187,8 @@ export const LiveClassesPage: React.FC = () => {
         <button
           onClick={() => setActiveTab('recordings')}
           className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all inline-flex items-center space-x-1.5 ${activeTab === 'recordings'
-              ? 'bg-indigo-600 text-white shadow-sm'
-              : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+            ? 'bg-indigo-600 text-white shadow-sm'
+            : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
             }`}
         >
           <Film className="w-3.5 h-3.5" />

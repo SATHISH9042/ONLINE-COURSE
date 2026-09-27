@@ -62,6 +62,8 @@ export const LiveRoomPage: React.FC = () => {
 
   const localStreamRef = useRef<MediaStream | null>(null);
   const screenStreamRef = useRef<MediaStream | null>(null);
+  const syntheticStreamRef = useRef<MediaStream | null>(null);
+  const syntheticAnimIdRef = useRef<number | null>(null);
   const localVideoRef = useRef<HTMLVideoElement | null>(null);
   const screenVideoRef = useRef<HTMLVideoElement | null>(null);
 
@@ -203,7 +205,99 @@ export const LiveRoomPage: React.FC = () => {
     };
   }, [id, isHost]);
 
-  // Clean up media streams on unmount
+  // Synthetic fallback camera stream for devices without a physical camera or during simulated environments
+  const createSyntheticCameraStream = (): MediaStream => {
+    if (syntheticStreamRef.current && syntheticStreamRef.current.active) {
+      return syntheticStreamRef.current;
+    }
+    const canvas = document.createElement('canvas');
+    canvas.width = 640;
+    canvas.height = 480;
+    const ctx = canvas.getContext('2d');
+    let frame = 0;
+
+    const draw = () => {
+      if (!ctx) return;
+      frame++;
+      // Dark slate studio gradient background
+      const grad = ctx.createLinearGradient(0, 0, 640, 480);
+      grad.addColorStop(0, '#0f172a');
+      grad.addColorStop(1, '#1e293b');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 640, 480);
+
+      // Subtle grid lines
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 1;
+      for (let x = 0; x < 640; x += 40) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, 480);
+        ctx.stroke();
+      }
+      for (let y = 0; y < 480; y += 40) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(640, y);
+        ctx.stroke();
+      }
+
+      // Outer animated pulse ring
+      const pulse = Math.sin(frame * 0.05) * 6;
+      ctx.beginPath();
+      ctx.arc(320, 200, 65 + pulse, 0, Math.PI * 2);
+      ctx.strokeStyle = '#6366f1';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+
+      // Avatar circle
+      ctx.beginPath();
+      ctx.arc(320, 200, 60, 0, Math.PI * 2);
+      ctx.fillStyle = '#4f46e5';
+      ctx.fill();
+
+      // User initial
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 44px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText((user?.fullName?.charAt(0) || 'U').toUpperCase(), 320, 200);
+
+      // User name tag
+      ctx.font = 'bold 18px sans-serif';
+      ctx.fillText(user?.fullName || 'Studio Presenter', 320, 290);
+
+      // Studio status badge
+      ctx.fillStyle = '#22c55e';
+      ctx.beginPath();
+      ctx.arc(240, 330, 5, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '12px monospace';
+      ctx.fillText(`LIVE STUDIO FEED • 30 FPS`, 335, 334);
+
+      syntheticAnimIdRef.current = requestAnimationFrame(draw);
+    };
+    draw();
+
+    const stream = (canvas as any).captureStream ? (canvas as any).captureStream(30) : new MediaStream();
+    const track = stream.getVideoTracks()[0];
+    if (track) {
+      const origStop = track.stop.bind(track);
+      track.stop = () => {
+        if (syntheticAnimIdRef.current) {
+          cancelAnimationFrame(syntheticAnimIdRef.current);
+          syntheticAnimIdRef.current = null;
+        }
+        origStop();
+      };
+    }
+    syntheticStreamRef.current = stream;
+    return stream;
+  };
+
+  // Clean up all media streams on unmount
   useEffect(() => {
     return () => {
       if (localStreamRef.current) {
@@ -212,8 +306,35 @@ export const LiveRoomPage: React.FC = () => {
       if (screenStreamRef.current) {
         screenStreamRef.current.getTracks().forEach((t) => t.stop());
       }
+      if (syntheticStreamRef.current) {
+        syntheticStreamRef.current.getTracks().forEach((t) => t.stop());
+      }
+      if (syntheticAnimIdRef.current) {
+        cancelAnimationFrame(syntheticAnimIdRef.current);
+        syntheticAnimIdRef.current = null;
+      }
     };
   }, []);
+
+  // Synchronize local video element whenever isVideoOn changes or stream updates
+  useEffect(() => {
+    if (localVideoRef.current && localStreamRef.current && isVideoOn) {
+      if (localVideoRef.current.srcObject !== localStreamRef.current) {
+        localVideoRef.current.srcObject = localStreamRef.current;
+      }
+      localVideoRef.current.play().catch(() => {});
+    }
+  }, [isVideoOn]);
+
+  // Synchronize screen share video element whenever isScreenSharing changes
+  useEffect(() => {
+    if (screenVideoRef.current && screenStreamRef.current && isScreenSharing) {
+      if (screenVideoRef.current.srcObject !== screenStreamRef.current) {
+        screenVideoRef.current.srcObject = screenStreamRef.current;
+      }
+      screenVideoRef.current.play().catch(() => {});
+    }
+  }, [isScreenSharing]);
 
   // Scroll to bottom on new chat messages
   useEffect(() => {
@@ -238,41 +359,101 @@ export const LiveRoomPage: React.FC = () => {
   const handleToggleCamera = async () => {
     try {
       if (isVideoOn) {
-        // Turn off camera
+        // Turn off camera: stop video track to extinguish physical camera LED
         if (localStreamRef.current) {
-          localStreamRef.current.getVideoTracks().forEach((t) => (t.enabled = false));
+          localStreamRef.current.getVideoTracks().forEach((track) => {
+            track.enabled = false;
+            track.stop();
+          });
+          const audioTracks = localStreamRef.current.getAudioTracks();
+          localStreamRef.current = audioTracks.length > 0 ? new MediaStream(audioTracks) : null;
         }
         setIsVideoOn(false);
       } else {
         // Turn on camera
-        if (!localStreamRef.current) {
-          const stream = await navigator.mediaDevices.getUserMedia({
-            video: { width: { ideal: 1280 }, height: { ideal: 720 } },
-            audio: isMicOn,
+        let stream: MediaStream;
+
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          stream = createSyntheticCameraStream();
+          setNotice({
+            text: 'Virtual studio camera active (MediaDevices unavailable in this browser context).',
+            type: 'info',
           });
-          localStreamRef.current = stream;
-          if (localVideoRef.current) {
-            localVideoRef.current.srcObject = stream;
-          }
         } else {
-          let videoTrack = localStreamRef.current.getVideoTracks()[0];
-          if (!videoTrack) {
-            const newStream = await navigator.mediaDevices.getUserMedia({ video: true });
-            videoTrack = newStream.getVideoTracks()[0];
-            localStreamRef.current.addTrack(videoTrack);
-          }
-          videoTrack.enabled = true;
-          if (localVideoRef.current) {
-            localVideoRef.current.srcObject = localStreamRef.current;
+          try {
+            // First attempt: ideal HD camera stream (audio: false prevents collision with microphone)
+            stream = await navigator.mediaDevices.getUserMedia({
+              video: {
+                width: { ideal: 1280, max: 1920 },
+                height: { ideal: 720, max: 1080 },
+                facingMode: 'user',
+              },
+              audio: false,
+            });
+          } catch (e: any) {
+            console.warn('HD camera attempt failed, trying basic video...', e);
+            try {
+              // Second attempt: basic video
+              stream = await navigator.mediaDevices.getUserMedia({
+                video: true,
+                audio: false,
+              });
+            } catch (fallbackErr: any) {
+              if (
+                fallbackErr.name === 'NotFoundError' ||
+                fallbackErr.name === 'DevicesNotFoundError'
+              ) {
+                // If no physical webcam is plugged in, use high-res virtual studio stream
+                stream = createSyntheticCameraStream();
+                setNotice({
+                  text: 'No physical webcam detected on this device. Virtual classroom stream active.',
+                  type: 'info',
+                });
+              } else {
+                throw fallbackErr;
+              }
+            }
           }
         }
+
+        const videoTrack = stream.getVideoTracks()[0];
+        if (videoTrack) {
+          videoTrack.enabled = true;
+          videoTrack.onended = () => {
+            setIsVideoOn(false);
+          };
+        }
+
+        if (!localStreamRef.current) {
+          localStreamRef.current = stream;
+        } else {
+          localStreamRef.current.getVideoTracks().forEach((t) => localStreamRef.current?.removeTrack(t));
+          if (videoTrack) {
+            localStreamRef.current.addTrack(videoTrack);
+          }
+        }
+
+        if (localVideoRef.current) {
+          localVideoRef.current.srcObject = localStreamRef.current;
+          await localVideoRef.current.play().catch(() => {});
+        }
+
         setIsVideoOn(true);
       }
     } catch (err: any) {
-      setNotice({
-        text: 'Camera access denied or device not found.',
-        type: 'warning',
-      });
+      console.error('Camera toggle error:', err);
+      let errorMsg = 'Unable to access camera.';
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        errorMsg = 'Camera permission denied. Please allow camera access in your browser address bar.';
+      } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+        errorMsg = 'No camera found on this computer. Please connect a webcam.';
+      } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
+        errorMsg = 'Camera is currently in use by another app (e.g. Zoom/FaceTime). Please close it and retry.';
+      } else if (err.message) {
+        errorMsg = err.message;
+      }
+      setNotice({ text: errorMsg, type: 'warning' });
+      setIsVideoOn(false);
     }
   };
 
@@ -292,32 +473,62 @@ export const LiveRoomPage: React.FC = () => {
     try {
       if (isMicOn) {
         if (localStreamRef.current) {
-          localStreamRef.current.getAudioTracks().forEach((t) => (t.enabled = false));
+          localStreamRef.current.getAudioTracks().forEach((track) => {
+            track.enabled = false;
+            track.stop();
+          });
+          const videoTracks = localStreamRef.current.getVideoTracks();
+          localStreamRef.current = videoTracks.length > 0 ? new MediaStream(videoTracks) : null;
         }
         setIsMicOn(false);
       } else {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          throw new Error('Microphone not supported in this browser context.');
+        }
+
+        const audioStream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+          },
+          video: false,
+        });
+
+        const audioTrack = audioStream.getAudioTracks()[0];
+        if (audioTrack) {
+          audioTrack.enabled = true;
+          audioTrack.onended = () => {
+            setIsMicOn(false);
+          };
+        }
+
         if (!localStreamRef.current) {
-          const stream = await navigator.mediaDevices.getUserMedia({
-            audio: true,
-            video: isVideoOn,
-          });
-          localStreamRef.current = stream;
+          localStreamRef.current = audioStream;
         } else {
-          let audioTrack = localStreamRef.current.getAudioTracks()[0];
-          if (!audioTrack) {
-            const newAudio = await navigator.mediaDevices.getUserMedia({ audio: true });
-            audioTrack = newAudio.getAudioTracks()[0];
+          localStreamRef.current.getAudioTracks().forEach((t) => localStreamRef.current?.removeTrack(t));
+          if (audioTrack) {
             localStreamRef.current.addTrack(audioTrack);
           }
-          audioTrack.enabled = true;
         }
+
         setIsMicOn(true);
       }
     } catch (err: any) {
+      console.error('Microphone toggle error:', err);
+      let errorMsg = 'Microphone access denied or device not found.';
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        errorMsg = 'Microphone permission denied. Please allow microphone access in your browser address bar.';
+      } else if (err.name === 'NotFoundError') {
+        errorMsg = 'No microphone found on this computer.';
+      } else if (err.name === 'NotReadableError') {
+        errorMsg = 'Microphone is currently in use by another application.';
+      }
       setNotice({
-        text: 'Microphone access denied or device not found.',
+        text: errorMsg,
         type: 'warning',
       });
+      setIsMicOn(false);
     }
   };
 
@@ -331,13 +542,18 @@ export const LiveRoomPage: React.FC = () => {
         }
         setIsScreenSharing(false);
       } else {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+          throw new Error('Screen sharing is not supported by your browser or environment.');
+        }
         const stream = await navigator.mediaDevices.getDisplayMedia({
           video: true,
           audio: true,
         });
         screenStreamRef.current = stream;
+
         if (screenVideoRef.current) {
           screenVideoRef.current.srcObject = stream;
+          await screenVideoRef.current.play().catch(() => {});
         }
         setIsScreenSharing(true);
 
@@ -347,9 +563,14 @@ export const LiveRoomPage: React.FC = () => {
           screenStreamRef.current = null;
         };
       }
-    } catch (err) {
-      // User cancelled picker or error
+    } catch (err: any) {
       setIsScreenSharing(false);
+      if (err.name !== 'NotAllowedError') {
+        setNotice({
+          text: err.message || 'Unable to share screen.',
+          type: 'warning',
+        });
+      }
     }
   };
 
@@ -642,56 +863,54 @@ export const LiveRoomPage: React.FC = () => {
         <main className="flex-1 flex flex-col p-3 md:p-5 overflow-hidden justify-between items-center relative">
           <div className="w-full h-full flex flex-col items-center justify-center relative rounded-2xl overflow-hidden bg-slate-900/60 border border-slate-800/80 shadow-2xl">
             {/* Screen Share Stage (if active) */}
-            {isScreenSharing ? (
-              <div className="w-full h-full relative flex items-center justify-center bg-black">
-                <video
-                  ref={screenVideoRef}
-                  autoPlay
-                  playsInline
-                  className="w-full h-full object-contain"
-                />
-                <div className="absolute top-4 left-4 bg-slate-900/80 backdrop-blur-md px-3 py-1.5 rounded-xl border border-slate-700 text-xs font-semibold text-white flex items-center space-x-2">
-                  <Monitor className="w-3.5 h-3.5 text-brand-400" />
-                  <span>You are presenting to everyone</span>
-                </div>
+            <div className={`w-full h-full relative items-center justify-center bg-black ${isScreenSharing ? 'flex' : 'hidden'}`}>
+              <video
+                ref={screenVideoRef}
+                autoPlay
+                playsInline
+                className="w-full h-full object-contain"
+              />
+              <div className="absolute top-4 left-4 bg-slate-900/80 backdrop-blur-md px-3 py-1.5 rounded-xl border border-slate-700 text-xs font-semibold text-white flex items-center space-x-2">
+                <Monitor className="w-3.5 h-3.5 text-brand-400" />
+                <span>You are presenting to everyone</span>
               </div>
-            ) : (
-              /* Main Host / Spotlight Stage */
-              <div className="w-full h-full relative flex items-center justify-center bg-gradient-to-b from-slate-900 to-slate-950">
-                {/* Local Video Stream or Avatar */}
-                {isVideoOn ? (
-                  <video
-                    ref={localVideoRef}
-                    autoPlay
-                    playsInline
-                    muted
-                    className="w-full h-full object-cover rounded-2xl"
-                  />
-                ) : (
-                  <div className="flex flex-col items-center space-y-4">
-                    <div className="relative">
-                      <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-full bg-gradient-to-tr from-brand-600 via-indigo-600 to-purple-600 flex items-center justify-center text-3xl sm:text-4xl font-extrabold text-white shadow-2xl shadow-brand-500/20 ring-4 ring-slate-800">
-                        {user?.fullName?.charAt(0).toUpperCase() || 'U'}
-                      </div>
-                      {isMicOn && (
-                        <div className="absolute -inset-2 rounded-full border-2 border-emerald-400 animate-ping opacity-75 pointer-events-none"></div>
-                      )}
+            </div>
+
+            {/* Main Host / Spotlight Stage */}
+            <div className={`w-full h-full relative items-center justify-center bg-gradient-to-b from-slate-900 to-slate-950 ${isScreenSharing ? 'hidden' : 'flex'}`}>
+              {/* Local Video Stream: ALWAYS mounted so ref is never null and stream binds immediately */}
+              <video
+                ref={localVideoRef}
+                autoPlay
+                playsInline
+                muted
+                className={`w-full h-full object-cover rounded-2xl ${isVideoOn ? 'block' : 'hidden'}`}
+              />
+
+              {/* Avatar placeholder when camera is OFF */}
+              {!isVideoOn && (
+                <div className="flex flex-col items-center space-y-4">
+                  <div className="relative">
+                    <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-full bg-gradient-to-tr from-brand-600 via-indigo-600 to-purple-600 flex items-center justify-center text-3xl sm:text-4xl font-extrabold text-white shadow-2xl shadow-brand-500/20 ring-4 ring-slate-800">
+                      {user?.fullName?.charAt(0).toUpperCase() || 'U'}
                     </div>
-                    <div className="text-center">
-                      <h3 className="text-base sm:text-lg font-bold text-white flex items-center justify-center space-x-2">
-                        <span>{user?.fullName || 'Participant'}</span>
-                        {isHost && (
-                          <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-brand-500/20 text-brand-300 border border-brand-500/30">
-                            Instructor (Host)
-                          </span>
-                        )}
-                      </h3>
-                      <p className="text-xs text-slate-400 mt-1">
-                        {isVideoOn ? 'Camera Active' : 'Camera is turned off'}
-                      </p>
-                    </div>
+                    {isMicOn && (
+                      <div className="absolute -inset-2 rounded-full border-2 border-emerald-400 animate-ping opacity-75 pointer-events-none"></div>
+                    )}
                   </div>
-                )}
+                  <div className="text-center">
+                    <h3 className="text-base sm:text-lg font-bold text-white flex items-center justify-center space-x-2">
+                      <span>{user?.fullName || 'Participant'}</span>
+                      {isHost && (
+                        <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-brand-500/20 text-brand-300 border border-brand-500/30">
+                          Instructor (Host)
+                        </span>
+                      )}
+                    </h3>
+                    <p className="text-xs text-slate-400 mt-1">Camera is turned off</p>
+                  </div>
+                </div>
+              )}
 
                 {/* Hand Raised Banner for current student */}
                 {handRaised && (
@@ -728,7 +947,6 @@ export const LiveRoomPage: React.FC = () => {
                   )}
                 </div>
               </div>
-            )}
 
             {/* Raised Hands Quick Alert for Host */}
             {isHost && raisedHandsList.length > 0 && (

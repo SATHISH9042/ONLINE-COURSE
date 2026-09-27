@@ -459,14 +459,14 @@ export async function seedDatabase() {
 
       const sampleRecords = [
         { monthsAgo: 8, amt: 9999, method: 'RAZORPAY', status: 'SUCCESS', cId: c1.id },
-        { monthsAgo: 7, amt: 14999, method: 'UPI_QR', status: 'MANUALLY_VERIFIED', cId: c2.id },
-        { monthsAgo: 6, amt: 9999, method: 'CARD', status: 'SUCCESS', cId: c1.id },
+        { monthsAgo: 7, amt: 14999, method: 'QR_CODE', status: 'MANUALLY_VERIFIED', cId: c2.id },
+        { monthsAgo: 6, amt: 9999, method: 'RAZORPAY', status: 'SUCCESS', cId: c1.id },
         { monthsAgo: 5, amt: 14999, method: 'RAZORPAY', status: 'SUCCESS', cId: c2.id },
-        { monthsAgo: 4, amt: 19998, method: 'UPI_QR', status: 'MANUALLY_VERIFIED', cId: c1.id },
+        { monthsAgo: 4, amt: 19998, method: 'QR_CODE', status: 'MANUALLY_VERIFIED', cId: c1.id },
         { monthsAgo: 3, amt: 9999, method: 'RAZORPAY', status: 'SUCCESS', cId: c1.id },
-        { monthsAgo: 2, amt: 14999, method: 'CARD', status: 'SUCCESS', cId: c2.id },
+        { monthsAgo: 2, amt: 14999, method: 'MANUAL_BANK_TRANSFER', status: 'SUCCESS', cId: c2.id },
         { monthsAgo: 1, amt: 29998, method: 'RAZORPAY', status: 'SUCCESS', cId: c1.id },
-        { monthsAgo: 0, amt: 14999, method: 'UPI_QR', status: 'MANUALLY_VERIFIED', cId: c2.id },
+        { monthsAgo: 0, amt: 14999, method: 'QR_CODE', status: 'MANUALLY_VERIFIED', cId: c2.id },
         { monthsAgo: 0, amt: 9999, method: 'RAZORPAY', status: 'SUCCESS', cId: c1.id },
       ];
 

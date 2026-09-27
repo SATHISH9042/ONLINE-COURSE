@@ -78,15 +78,37 @@ export const FinancialDashboardPage: React.FC = () => {
     }).format(amount);
   };
 
+  // Payment method label formatter
+  const getMethodLabel = (method: string) => {
+    switch (method) {
+      case 'QR_CODE':
+      case 'UPI_QR':
+        return 'UPI QR Code / Scanner';
+      case 'RAZORPAY':
+        return 'Razorpay Gateway (Cards / UPI / NetBanking)';
+      case 'CARD':
+        return 'Credit / Debit Card';
+      case 'MANUAL_BANK_TRANSFER':
+        return 'Direct Bank Transfer / NEFT';
+      case 'FREE_ENROLLMENT':
+        return 'Institutional Scholarship / 100% Waiver';
+      default:
+        return method || 'Direct Payment';
+    }
+  };
+
   // Re-calculate simulated values if expense ratio changed
   const simulatedSummary = useMemo(() => {
-    if (!data) return null;
-    const { summary } = data;
-    const simulatedExpenses = Math.round(summary.netRevenue * (expenseRatio / 100));
-    const simulatedProfit = Math.max(summary.netRevenue - simulatedExpenses, 0);
-    const simulatedMargin = summary.netRevenue > 0 ? Math.round((simulatedProfit / summary.netRevenue) * 100) : 0;
+    if (!data?.summary) return null;
+    const summary = data.summary;
+    const net = Number(summary.netRevenue) || 0;
+    const simulatedExpenses = Math.round(net * (expenseRatio / 100));
+    const simulatedProfit = Math.max(net - simulatedExpenses, 0);
+    const simulatedMargin = net > 0 ? Math.round((simulatedProfit / net) * 100) : 0;
     return {
       ...summary,
+      grossRevenue: Number(summary.grossRevenue) || 0,
+      netRevenue: net,
       estimatedExpenses: simulatedExpenses,
       netProfit: simulatedProfit,
       profitMarginPercent: simulatedMargin,
@@ -95,27 +117,38 @@ export const FinancialDashboardPage: React.FC = () => {
 
   // Filtered monthly records based on selected year
   const filteredMonthly = useMemo(() => {
-    if (!data) return [];
+    if (!data?.monthlyRecords) return [];
     if (selectedYear === 'ALL') return data.monthlyRecords;
-    return data.monthlyRecords.filter((m) => m.year.toString() === selectedYear);
+    return data.monthlyRecords.filter((m) => (m.year ? m.year.toString() : '') === selectedYear);
   }, [data, selectedYear]);
 
   // Max revenue in monthly records for chart scaling
   const maxMonthlyRevenue = useMemo(() => {
     if (!filteredMonthly || filteredMonthly.length === 0) return 1;
-    return Math.max(...filteredMonthly.map((m) => m.grossRevenue), 1);
+    const max = Math.max(...filteredMonthly.map((m) => Number(m.grossRevenue) || 0), 1);
+    return max > 0 ? max : 1;
   }, [filteredMonthly]);
 
   // Filtered ledger transactions
   const filteredLedger = useMemo(() => {
-    if (!data) return [];
+    if (!data?.ledgerEntries) return [];
+    const searchLower = (ledgerSearch || '').toLowerCase().trim();
+
     return data.ledgerEntries.filter((item) => {
+      if (!item) return false;
+      const orderId = String(item.orderId || '').toLowerCase();
+      const studentName = String(item.studentName || '').toLowerCase();
+      const studentEmail = String(item.studentEmail || '').toLowerCase();
+      const courseTitle = String(item.courseTitle || '').toLowerCase();
+      const paymentId = String(item.paymentId || '').toLowerCase();
+
       const matchesSearch =
-        item.orderId.toLowerCase().includes(ledgerSearch.toLowerCase()) ||
-        item.studentName.toLowerCase().includes(ledgerSearch.toLowerCase()) ||
-        (item.studentEmail && item.studentEmail.toLowerCase().includes(ledgerSearch.toLowerCase())) ||
-        item.courseTitle.toLowerCase().includes(ledgerSearch.toLowerCase()) ||
-        (item.paymentId && item.paymentId.toLowerCase().includes(ledgerSearch.toLowerCase()));
+        !searchLower ||
+        orderId.includes(searchLower) ||
+        studentName.includes(searchLower) ||
+        studentEmail.includes(searchLower) ||
+        courseTitle.includes(searchLower) ||
+        paymentId.includes(searchLower);
 
       const matchesStatus =
         ledgerStatusFilter === 'ALL' || item.status === ledgerStatusFilter;
@@ -138,14 +171,14 @@ export const FinancialDashboardPage: React.FC = () => {
       'Date',
     ];
     const rows = filteredLedger.map((tx) => [
-      `"${tx.orderId}"`,
-      `"${tx.studentName}"`,
-      `"${tx.studentEmail || ''}"`,
-      `"${tx.courseTitle}"`,
-      `"${tx.paymentMethod}"`,
-      tx.amount,
-      `"${tx.status}"`,
-      `"${new Date(tx.createdAt).toLocaleString()}"`,
+      `"${String(tx.orderId || '')}"`,
+      `"${String(tx.studentName || '')}"`,
+      `"${String(tx.studentEmail || '')}"`,
+      `"${String(tx.courseTitle || '')}"`,
+      `"${getMethodLabel(tx.paymentMethod)}"`,
+      tx.amount || 0,
+      `"${String(tx.status || '')}"`,
+      `"${tx.createdAt ? new Date(tx.createdAt).toLocaleString() : ''}"`,
     ]);
 
     const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
@@ -181,26 +214,34 @@ export const FinancialDashboardPage: React.FC = () => {
   if (error || !data || !simulatedSummary) {
     return (
       <div className="w-full p-6">
-        <div className="bg-red-50 border border-red-200 text-red-700 p-6 rounded-2xl flex items-center justify-between">
+        <div className="bg-red-50 border border-red-200 text-red-700 p-6 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h3 className="font-bold text-base">Unable to load financial dashboard</h3>
             <p className="text-xs text-red-600 mt-1">{error || 'Network error retrieving financial data.'}</p>
           </div>
-          <button
-            onClick={fetchData}
-            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold transition-colors"
-          >
-            Retry
-          </button>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={fetchData}
+              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold transition-colors shadow-xs"
+            >
+              Retry Connection
+            </button>
+          </div>
         </div>
       </div>
     );
   }
 
-  const { monthlyRecords, yearlyRecords, courseBreakdown, paymentMethodBreakdown } = data;
+  const monthlyRecords = data.monthlyRecords || [];
+  const yearlyRecords = data.yearlyRecords || [];
+  const courseBreakdown = data.courseBreakdown || [];
+  const paymentMethodBreakdown = data.paymentMethodBreakdown || [];
+  const ledgerEntries = data.ledgerEntries || [];
 
   // Extract unique years for filter
-  const availableYears = Array.from(new Set(monthlyRecords.map((m) => m.year.toString()))).sort().reverse();
+  const availableYears = Array.from(
+    new Set(monthlyRecords.map((m) => (m.year ? m.year.toString() : '')).filter(Boolean))
+  ).sort().reverse();
 
   return (
     <div className="w-full space-y-8 animate-in fade-in duration-200 print:p-0">
@@ -828,7 +869,7 @@ export const FinancialDashboardPage: React.FC = () => {
                   <div key={pm.method} className="space-y-1.5">
                     <div className="flex items-center justify-between text-xs">
                       <span className="font-bold text-slate-800">
-                        {pm.method === 'UPI_QR' ? 'UPI QR Code / Scanner' : pm.method}
+                        {getMethodLabel(pm.method)}
                       </span>
                       <span className="font-semibold text-slate-600">
                         {formatCurrency(pm.totalAmount)} ({pm.percent}%)
@@ -977,7 +1018,7 @@ export const FinancialDashboardPage: React.FC = () => {
                         </td>
                         <td className="py-3.5 px-4">
                           <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 text-slate-700">
-                            {tx.paymentMethod}
+                            {getMethodLabel(tx.paymentMethod)}
                           </span>
                         </td>
                         <td className="py-3.5 px-4 font-extrabold text-slate-900">

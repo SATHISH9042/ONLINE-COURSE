@@ -29,6 +29,10 @@ router.put('/profile', StudentDashboardController.updateProfile);
 
 // Section 18: Live Classes & Recordings
 router.get('/live-classes', LiveClassController.getStudentLiveClasses);
+router.get('/live-classes/:id/session', LiveClassController.getSessionDetails);
+router.post('/live-classes/:id/session/hand', LiveClassController.toggleRaiseHand);
+router.post('/live-classes/:id/session/messages', LiveClassController.sendSessionMessage);
+router.get('/live-classes/:id/session/messages', LiveClassController.getSessionMessages);
 
 // Section 19: Notifications Center
 router.get('/notifications', NotificationController.getStudentNotifications);

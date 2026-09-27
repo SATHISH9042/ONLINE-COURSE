@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import {
   Video,
   Calendar,
@@ -502,16 +503,15 @@ export const LiveClassesAdminPage: React.FC = () => {
                         <span className="hidden sm:inline">Add Recording</span>
                       </button>
 
-                      {/* Meeting Link Preview */}
-                      <a
-                        href={item.meeting_link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        title="Open Meeting Link"
-                        className="p-2 text-slate-600 hover:text-brand-600 hover:bg-slate-100 rounded-xl border border-slate-200 transition-colors"
+                      {/* In-Platform Host Live Studio */}
+                      <Link
+                        to={`/live/${item.id}`}
+                        title="Enter / Host Native Live Studio"
+                        className="px-3 py-1.5 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white rounded-xl shadow-xs text-xs font-bold inline-flex items-center space-x-1.5 transition-all hover:scale-[1.02]"
                       >
-                        <ExternalLink className="w-3.5 h-3.5" />
-                      </a>
+                        <Radio className="w-3.5 h-3.5 animate-pulse" />
+                        <span>Host Studio</span>
+                      </Link>
 
                       {/* Edit Button */}
                       <button

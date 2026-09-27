@@ -25,6 +25,7 @@ import { NotificationsAdminPage } from './pages/admin/NotificationsAdminPage';
 import { AdminDashboardOverviewPage } from './pages/admin/AdminDashboardOverviewPage';
 import { StudentProgressDetailPage } from './pages/admin/StudentProgressDetailPage';
 import { AuditLogsPage } from './pages/admin/AuditLogsPage';
+import { LiveRoomPage } from './pages/live/LiveRoomPage';
 
 import { AdminLayout } from './layouts/AdminLayout';
 
@@ -73,6 +74,29 @@ const StudentRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 
   if (user.role === 'ADMIN') {
     return <Navigate to="/admin/dashboard" replace />;
+  }
+
+  return <>{children}</>;
+};
+
+// Protected route guard for In-Platform Live Session Studio (Admins and Approved Students)
+const LiveSessionRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-950">
+        <div className="w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (user.status === 'PENDING_APPROVAL') {
+    return <Navigate to="/pending-approval" replace />;
   }
 
   return <>{children}</>;
@@ -177,6 +201,16 @@ export const App: React.FC = () => {
               <StudentRoute>
                 <CourseLearningPage />
               </StudentRoute>
+            }
+          />
+
+          {/* Native In-Platform Live Virtual Classroom Studio (Google Meet alternative) */}
+          <Route
+            path="/live/:id"
+            element={
+              <LiveSessionRoute>
+                <LiveRoomPage />
+              </LiveSessionRoute>
             }
           />
 

@@ -334,6 +334,18 @@ CREATE TABLE IF NOT EXISTS live_class_recordings (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS live_class_messages (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    live_class_id UUID NOT NULL REFERENCES live_classes(id) ON DELETE CASCADE,
+    sender_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    sender_name VARCHAR(150) NOT NULL,
+    sender_role VARCHAR(20) NOT NULL,
+    message TEXT NOT NULL,
+    is_pinned BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_live_class_messages ON live_class_messages(live_class_id, created_at);
+
 -- -----------------------------------------------------------------------------
 -- 7. PAYMENTS & TRANSACTIONS
 -- -----------------------------------------------------------------------------

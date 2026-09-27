@@ -41,7 +41,7 @@ export const UniversalSearchBar: React.FC = () => {
           setCourses(res.data);
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   // Global keyboard shortcut: Cmd+K or Ctrl+K to focus search bar
@@ -236,9 +236,8 @@ export const UniversalSearchBar: React.FC = () => {
                         </div>
                         {c.badge && (
                           <span
-                            className={`shrink-0 px-2 py-0.5 rounded-full text-[10px] font-black ${
-                              c.badgeColor || 'bg-slate-100 text-slate-700'
-                            }`}
+                            className={`shrink-0 px-2 py-0.5 rounded-full text-[10px] font-black ${c.badgeColor || 'bg-slate-100 text-slate-700'
+                              }`}
                           >
                             {c.badge}
                           </span>

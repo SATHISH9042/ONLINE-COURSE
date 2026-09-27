@@ -74,6 +74,14 @@ router.delete('/live-classes/:id', LiveClassController.deleteLiveClass);
 router.post('/live-classes/:id/recordings', LiveClassController.addRecording);
 router.delete('/recordings/:id', LiveClassController.deleteRecording);
 
+// In-Platform Virtual Classroom Host Studio Endpoints
+router.get('/live-classes/:id/session', LiveClassController.getSessionDetails);
+router.post('/live-classes/:id/session/recording', LiveClassController.controlRecording);
+router.post('/live-classes/:id/session/speaking', LiveClassController.setStudentSpeakingPermission);
+router.post('/live-classes/:id/session/mute-all', LiveClassController.muteAllStudents);
+router.post('/live-classes/:id/session/messages', LiveClassController.sendSessionMessage);
+router.get('/live-classes/:id/session/messages', LiveClassController.getSessionMessages);
+
 // Section 29: Notifications Broadcast Management
 router.get('/notifications', NotificationController.listAdminNotifications);
 router.post('/notifications', NotificationController.sendBroadcast);

@@ -308,14 +308,12 @@ export const StudentHomePage: React.FC = () => {
                     </span>
                   </div>
 
-                  <a
-                    href={cls.meeting_link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block w-full text-center py-2 rounded-xl text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 transition-colors"
+                  <Link
+                    to={`/live/${cls.id}`}
+                    className="block w-full text-center py-2 rounded-xl text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 transition-colors shadow-xs"
                   >
-                    Join Class
-                  </a>
+                    Enter Live Class
+                  </Link>
                 </div>
               ))
             )}

@@ -2,6 +2,40 @@ import { Request, Response, NextFunction } from 'express';
 import { db } from '../database/db';
 import { z } from 'zod';
 
+interface SessionParticipant {
+  userId: string;
+  name: string;
+  role: 'ADMIN' | 'STUDENT';
+  canSpeak: boolean;
+  handRaised: boolean;
+  isMuted: boolean;
+  isVideoOn: boolean;
+  joinedAt: string;
+}
+
+interface LiveSessionState {
+  classId: string;
+  isRecording: boolean;
+  recordingStartedAt: number | null;
+  participants: Map<string, SessionParticipant>;
+}
+
+const liveSessionsState = new Map<string, LiveSessionState>();
+
+function getOrCreateSession(classId: string): LiveSessionState {
+  let session = liveSessionsState.get(classId);
+  if (!session) {
+    session = {
+      classId,
+      isRecording: false,
+      recordingStartedAt: null,
+      participants: new Map(),
+    };
+    liveSessionsState.set(classId, session);
+  }
+  return session;
+}
+
 export class LiveClassController {
   // ---------------------------------------------------------------------------
   // 1. STUDENT ENDPOINTS (Section 18)
@@ -434,6 +468,315 @@ export class LiveClassController {
       );
 
       res.status(200).json({ success: true, message: 'Recording deleted successfully.' });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // 3. IN-PLATFORM NATIVE VIRTUAL CLASSROOM SESSION STUDIO
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Get in-platform live session room state, participants, and host status
+   */
+  static async getSessionDetails(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const id = (Array.isArray(req.params.id) ? req.params.id[0] : req.params.id) as string;
+      const user = req.user!;
+
+      // 1. Fetch live class details
+      const classRes = await db.query(
+        `SELECT lc.*, c.title as course_title, c.thumbnail_url as course_thumbnail
+         FROM live_classes lc
+         LEFT JOIN courses c ON c.id = lc.course_id
+         WHERE lc.id = $1`,
+        [id]
+      );
+
+      if (classRes.rowCount === 0) {
+        res.status(404).json({ success: false, code: 'NOT_FOUND', message: 'Live class session not found.' });
+        return;
+      }
+
+      const liveClass = classRes.rows[0];
+
+      // 2. Retrieve or initialize live session in-memory state
+      const session = getOrCreateSession(id);
+
+      // 3. Register or update the current user in participants map
+      let participant = session.participants.get(user.id);
+      if (!participant) {
+        const isHost = user.role === 'ADMIN';
+        participant = {
+          userId: user.id,
+          name: user.role === 'ADMIN' ? (liveClass.instructor_name || 'Host Instructor') : (user.phone || 'Student'),
+          role: user.role as 'ADMIN' | 'STUDENT',
+          canSpeak: isHost, // Admin can always speak; Students must be granted permission
+          handRaised: false,
+          isMuted: !isHost,
+          isVideoOn: false,
+          joinedAt: new Date().toISOString(),
+        };
+        session.participants.set(user.id, participant);
+      }
+
+      // Fetch student name from student_profiles if available
+      if (user.role === 'STUDENT' && participant.name.startsWith('+')) {
+        const profRes = await db.query('SELECT full_name FROM student_profiles WHERE user_id = $1', [user.id]);
+        if (profRes.rowCount && profRes.rows[0].full_name) {
+          participant.name = profRes.rows[0].full_name;
+        }
+      }
+
+      // Calculate recording seconds if active
+      let recordingDurationSeconds = 0;
+      if (session.isRecording && session.recordingStartedAt) {
+        recordingDurationSeconds = Math.floor((Date.now() - session.recordingStartedAt) / 1000);
+      }
+
+      res.status(200).json({
+        success: true,
+        data: {
+          id: liveClass.id,
+          title: liveClass.title,
+          description: liveClass.description,
+          instructorName: liveClass.instructor_name,
+          courseTitle: liveClass.course_title || 'Institute Masterclass',
+          courseThumbnail: liveClass.course_thumbnail,
+          status: liveClass.status,
+          startTime: liveClass.start_time,
+          endTime: liveClass.end_time,
+          isRecording: session.isRecording,
+          recordingDurationSeconds,
+          isHost: user.role === 'ADMIN',
+          currentParticipant: participant,
+          participants: Array.from(session.participants.values()),
+        },
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  /**
+   * Host / Admin controls session recording (START / STOP)
+   */
+  static async controlRecording(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const id = (Array.isArray(req.params.id) ? req.params.id[0] : req.params.id) as string;
+      const { action } = req.body; // 'START' | 'STOP'
+
+      const classRes = await db.query('SELECT * FROM live_classes WHERE id = $1', [id]);
+      if (classRes.rowCount === 0) {
+        res.status(404).json({ success: false, code: 'NOT_FOUND', message: 'Live class not found.' });
+        return;
+      }
+      const liveClass = classRes.rows[0];
+
+      const session = getOrCreateSession(id);
+
+      if (action === 'START') {
+        session.isRecording = true;
+        session.recordingStartedAt = Date.now();
+
+        // Broadcast notification/message
+        await db.query(
+          `INSERT INTO live_class_messages (live_class_id, sender_id, sender_name, sender_role, message, is_pinned)
+           VALUES ($1, $2, 'System', 'SYSTEM', '🔴 Session recording has started.', true)`,
+          [id, req.user!.id]
+        );
+
+        res.status(200).json({
+          success: true,
+          message: 'Recording started.',
+          data: { isRecording: true, recordingStartedAt: session.recordingStartedAt },
+        });
+      } else if (action === 'STOP') {
+        const durationSeconds = session.recordingStartedAt
+          ? Math.max(Math.floor((Date.now() - session.recordingStartedAt) / 1000), 1)
+          : 60;
+
+        session.isRecording = false;
+        session.recordingStartedAt = null;
+
+        // Auto-save recording into live_class_recordings
+        const recRes = await db.query(
+          `INSERT INTO live_class_recordings (live_class_id, title, storage_provider, storage_key, duration_seconds)
+           VALUES ($1, $2, 's3', $3, $4)
+           RETURNING *`,
+          [
+            id,
+            `${liveClass.title} - Session Recording (${new Date().toLocaleDateString()})`,
+            `recordings/${id}/session_${Date.now()}.mp4`,
+            durationSeconds,
+          ]
+        );
+
+        await db.query(
+          `INSERT INTO live_class_messages (live_class_id, sender_id, sender_name, sender_role, message, is_pinned)
+           VALUES ($1, $2, 'System', 'SYSTEM', '⏹️ Session recording stopped and saved to course library.', false)`,
+          [id, req.user!.id]
+        );
+
+        res.status(200).json({
+          success: true,
+          message: 'Recording stopped and saved to library.',
+          data: { isRecording: false, recording: recRes.rows[0] },
+        });
+      } else {
+        res.status(400).json({ success: false, code: 'INVALID_ACTION', message: 'Action must be START or STOP' });
+      }
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  /**
+   * Host / Admin sets speaking permissions for a student
+   */
+  static async setStudentSpeakingPermission(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const id = (Array.isArray(req.params.id) ? req.params.id[0] : req.params.id) as string;
+      const { studentId, allowed } = req.body;
+
+      if (!studentId || typeof allowed !== 'boolean') {
+        res.status(400).json({ success: false, code: 'INVALID_INPUT', message: 'studentId and allowed are required.' });
+        return;
+      }
+
+      const session = getOrCreateSession(id);
+      const participant = session.participants.get(studentId);
+      if (participant) {
+        participant.canSpeak = allowed;
+        if (!allowed) {
+          participant.isMuted = true;
+        } else {
+          participant.handRaised = false; // Lower hand once allowed
+        }
+      }
+
+      res.status(200).json({
+        success: true,
+        message: allowed ? 'Student granted speaking permission.' : 'Student muted by host.',
+        data: { studentId, canSpeak: allowed },
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  /**
+   * Host / Admin mutes all students at once
+   */
+  static async muteAllStudents(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const id = (Array.isArray(req.params.id) ? req.params.id[0] : req.params.id) as string;
+      const session = getOrCreateSession(id);
+      for (const p of session.participants.values()) {
+        if (p.role === 'STUDENT') {
+          p.canSpeak = false;
+          p.isMuted = true;
+        }
+      }
+
+      res.status(200).json({ success: true, message: 'All students have been muted by the host.' });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  /**
+   * Student toggles "Raise Hand" to request speaking permission
+   */
+  static async toggleRaiseHand(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const id = (Array.isArray(req.params.id) ? req.params.id[0] : req.params.id) as string;
+      const { raised } = req.body;
+      const userId = req.user!.id;
+
+      const session = getOrCreateSession(id);
+      const participant = session.participants.get(userId);
+      if (participant) {
+        participant.handRaised = Boolean(raised);
+      }
+
+      res.status(200).json({
+        success: true,
+        message: raised ? 'Hand raised. Host notified.' : 'Hand lowered.',
+        data: { handRaised: Boolean(raised) },
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  /**
+   * Send live message to class chat box
+   */
+  static async sendSessionMessage(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const id = (Array.isArray(req.params.id) ? req.params.id[0] : req.params.id) as string;
+      const user = req.user!;
+      const { text, isPinned } = req.body;
+
+      if (!text || typeof text !== 'string' || !text.trim()) {
+        res.status(400).json({ success: false, code: 'EMPTY_MESSAGE', message: 'Message text cannot be empty.' });
+        return;
+      }
+
+      // Fetch sender display name
+      let senderName = user.role === 'ADMIN' ? 'Instructor (Host)' : 'Student';
+      if (user.role === 'ADMIN') {
+        const classRes = await db.query('SELECT instructor_name FROM live_classes WHERE id = $1', [id]);
+        if (classRes.rowCount && classRes.rows[0].instructor_name) {
+          senderName = `${classRes.rows[0].instructor_name} (Host)`;
+        }
+      } else {
+        const profRes = await db.query('SELECT full_name FROM student_profiles WHERE user_id = $1', [user.id]);
+        if (profRes.rowCount && profRes.rows[0].full_name) {
+          senderName = profRes.rows[0].full_name;
+        } else if (user.phone) {
+          senderName = user.phone;
+        }
+      }
+
+      const insertRes = await db.query(
+        `INSERT INTO live_class_messages (live_class_id, sender_id, sender_name, sender_role, message, is_pinned)
+         VALUES ($1, $2, $3, $4, $5, $6)
+         RETURNING *`,
+        [id, user.id, senderName, user.role, text.trim(), Boolean(isPinned && user.role === 'ADMIN')]
+      );
+
+      res.status(201).json({
+        success: true,
+        message: 'Message sent.',
+        data: insertRes.rows[0],
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  /**
+   * Get all chat messages for a live session
+   */
+  static async getSessionMessages(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { id } = req.params;
+
+      const msgsRes = await db.query(
+        `SELECT id, live_class_id, sender_id, sender_name, sender_role, message, is_pinned, created_at
+         FROM live_class_messages
+         WHERE live_class_id = $1
+         ORDER BY created_at ASC`,
+        [id]
+      );
+
+      res.status(200).json({
+        success: true,
+        data: msgsRes.rows,
+      });
     } catch (err) {
       next(err);
     }

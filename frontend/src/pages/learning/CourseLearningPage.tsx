@@ -360,8 +360,8 @@ export const CourseLearningPage: React.FC = () => {
           <button
             onClick={handleToggleCompletion}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition ${contentBundle?.subtopic.isCompleted
-                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
-                : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700'
+              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+              : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700'
               }`}
           >
             {contentBundle?.subtopic.isCompleted ? (
@@ -429,8 +429,8 @@ export const CourseLearningPage: React.FC = () => {
                             setSidebarOpen(false);
                           }}
                           className={`w-full px-3 py-2 rounded-lg text-left text-xs flex items-center justify-between transition ${isSelected
-                              ? 'bg-indigo-600 text-white font-medium shadow-md shadow-indigo-600/20'
-                              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                            ? 'bg-indigo-600 text-white font-medium shadow-md shadow-indigo-600/20'
+                            : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
                             }`}
                         >
                           <div className="flex items-center gap-2 truncate">
@@ -529,8 +529,8 @@ export const CourseLearningPage: React.FC = () => {
                     <button
                       onClick={() => setActiveTab('video')}
                       className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition ${activeTab === 'video'
-                          ? 'bg-indigo-600 text-white shadow'
-                          : 'bg-slate-800 hover:bg-slate-700 text-slate-400'
+                        ? 'bg-indigo-600 text-white shadow'
+                        : 'bg-slate-800 hover:bg-slate-700 text-slate-400'
                         }`}
                     >
                       <PlayCircle className="w-4 h-4" /> Video Lesson
@@ -540,8 +540,8 @@ export const CourseLearningPage: React.FC = () => {
                     <button
                       onClick={() => setActiveTab('coding')}
                       className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition ${activeTab === 'coding'
-                          ? 'bg-indigo-600 text-white shadow'
-                          : 'bg-slate-800 hover:bg-slate-700 text-slate-400'
+                        ? 'bg-indigo-600 text-white shadow'
+                        : 'bg-slate-800 hover:bg-slate-700 text-slate-400'
                         }`}
                     >
                       <Code2 className="w-4 h-4" /> Coding Practice
@@ -551,8 +551,8 @@ export const CourseLearningPage: React.FC = () => {
                     <button
                       onClick={() => setActiveTab('mcq')}
                       className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition ${activeTab === 'mcq'
-                          ? 'bg-indigo-600 text-white shadow'
-                          : 'bg-slate-800 hover:bg-slate-700 text-slate-400'
+                        ? 'bg-indigo-600 text-white shadow'
+                        : 'bg-slate-800 hover:bg-slate-700 text-slate-400'
                         }`}
                     >
                       <HelpCircle className="w-4 h-4" /> MCQ Assessment
@@ -771,8 +771,8 @@ export const CourseLearningPage: React.FC = () => {
                               <div className="flex items-center gap-2">
                                 <span
                                   className={`px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider ${codeRunResult.status === 'ACCEPTED'
-                                      ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
-                                      : 'bg-rose-500/10 text-rose-400 border border-rose-500/30'
+                                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                                    : 'bg-rose-500/10 text-rose-400 border border-rose-500/30'
                                     }`}
                                 >
                                   {codeRunResult.status.replace(/_/g, ' ')}
@@ -793,8 +793,8 @@ export const CourseLearningPage: React.FC = () => {
                                 <div
                                   key={r.testCaseIndex}
                                   className={`p-2.5 rounded-lg border text-xs font-mono flex items-center justify-between ${r.passed
-                                      ? 'bg-emerald-950/20 border-emerald-800/40 text-emerald-300'
-                                      : 'bg-rose-950/20 border-rose-800/40 text-rose-300'
+                                    ? 'bg-emerald-950/20 border-emerald-800/40 text-emerald-300'
+                                    : 'bg-rose-950/20 border-rose-800/40 text-rose-300'
                                     }`}
                                 >
                                   <div className="flex items-center gap-2">
@@ -860,15 +860,15 @@ export const CourseLearningPage: React.FC = () => {
                                     setMcqAnswers((prev) => ({ ...prev, [qId]: opt.id }))
                                   }
                                   className={`w-full p-3.5 rounded-xl text-left text-sm flex items-center justify-between border transition ${isSelected
-                                      ? 'bg-indigo-600/20 border-indigo-500 text-white font-medium'
-                                      : 'bg-slate-950 border-slate-800 text-slate-300 hover:border-slate-700 hover:bg-slate-850'
+                                    ? 'bg-indigo-600/20 border-indigo-500 text-white font-medium'
+                                    : 'bg-slate-950 border-slate-800 text-slate-300 hover:border-slate-700 hover:bg-slate-850'
                                     }`}
                                 >
                                   <span>{opt.text}</span>
                                   <div
                                     className={`w-4 h-4 rounded-full border flex items-center justify-center ${isSelected
-                                        ? 'border-indigo-400 bg-indigo-500'
-                                        : 'border-slate-600'
+                                      ? 'border-indigo-400 bg-indigo-500'
+                                      : 'border-slate-600'
                                       }`}
                                   >
                                     {isSelected && <div className="w-1.5 h-1.5 bg-white rounded-full"></div>}
@@ -914,8 +914,8 @@ export const CourseLearningPage: React.FC = () => {
                     <div className="space-y-6">
                       <div
                         className={`p-6 rounded-2xl border text-center space-y-3 ${mcqResult.passed
-                            ? 'bg-emerald-950/20 border-emerald-800/40'
-                            : 'bg-rose-950/20 border-rose-800/40'
+                          ? 'bg-emerald-950/20 border-emerald-800/40'
+                          : 'bg-rose-950/20 border-rose-800/40'
                           }`}
                       >
                         <Award
@@ -952,8 +952,8 @@ export const CourseLearningPage: React.FC = () => {
                           <div
                             key={item.questionId}
                             className={`p-4 rounded-xl border space-y-2 text-xs ${item.isCorrect
-                                ? 'bg-slate-900 border-emerald-800/40'
-                                : 'bg-slate-900 border-rose-800/40'
+                              ? 'bg-slate-900 border-emerald-800/40'
+                              : 'bg-slate-900 border-rose-800/40'
                               }`}
                           >
                             <div className="flex items-center justify-between">

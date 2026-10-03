@@ -5,6 +5,7 @@ import { AdminPaymentController } from '../controllers/admin.payment.controller'
 import { LiveClassController } from '../controllers/liveClass.controller';
 import { NotificationController } from '../controllers/notification.controller';
 import { AdminAnalyticsController } from '../controllers/admin.analytics.controller';
+import { AdminMentorController } from '../controllers/admin.mentor.controller';
 import { authenticateToken, requireActive, requireRole } from '../middleware/auth.middleware';
 
 const router = Router();
@@ -97,5 +98,12 @@ router.get('/courses/:id/engagement', AdminAnalyticsController.getCourseEngageme
 
 // Section 33: Comprehensive Audit Logs Viewer
 router.get('/audit-logs', AdminAnalyticsController.getAuditLogs);
+
+// Section 37: Mentor Management & Student Assignment Matrix (Admin Exclusive)
+router.get('/mentors', AdminMentorController.listMentors);
+router.post('/mentors', AdminMentorController.createMentor);
+router.post('/mentors/assign', AdminMentorController.assignStudentsToMentor);
+router.delete('/mentors/:mentorId/students/:studentId', AdminMentorController.unassignStudentFromMentor);
+router.get('/mentors/students-matrix', AdminMentorController.getAllStudentsWithMentors);
 
 export default router;

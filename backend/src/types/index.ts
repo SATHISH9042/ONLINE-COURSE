@@ -1,4 +1,4 @@
-export type UserRole = 'STUDENT' | 'ADMIN';
+export type UserRole = 'STUDENT' | 'ADMIN' | 'MENTOR';
 
 export type UserStatus = 'PENDING_APPROVAL' | 'ACTIVE' | 'REJECTED' | 'SUSPENDED';
 
@@ -34,6 +34,28 @@ export interface AdminProfile {
   user_id: string;
   full_name: string;
   department: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface MentorProfile {
+  id: string;
+  user_id: string;
+  full_name: string;
+  specialization: string;
+  phone: string | null;
+  bio: string | null;
+  avatar_url: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface MentorStudentAssignment {
+  id: string;
+  mentor_id: string;
+  student_id: string;
+  assigned_by_admin_id: string | null;
+  notes: string | null;
   created_at: string;
   updated_at: string;
 }

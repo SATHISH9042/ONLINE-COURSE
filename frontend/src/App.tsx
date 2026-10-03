@@ -26,9 +26,14 @@ import { AdminDashboardOverviewPage } from './pages/admin/AdminDashboardOverview
 import { StudentProgressDetailPage } from './pages/admin/StudentProgressDetailPage';
 import { AuditLogsPage } from './pages/admin/AuditLogsPage';
 import { FinancialDashboardPage } from './pages/admin/FinancialDashboardPage';
+import { AdminMentorsPage } from './pages/admin/AdminMentorsPage';
 import { LiveRoomPage } from './pages/live/LiveRoomPage';
 
 import { AdminLayout } from './layouts/AdminLayout';
+import { MentorLayout } from './layouts/MentorLayout';
+import { MentorDashboardPage } from './pages/mentor/MentorDashboardPage';
+import { MentorStudentsPage } from './pages/mentor/MentorStudentsPage';
+import { MentorStudentDetailPage } from './pages/mentor/MentorStudentDetailPage';
 
 // Protected route guard for Admin
 const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -77,6 +82,34 @@ const StudentRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     return <Navigate to="/admin/dashboard" replace />;
   }
 
+  if (user.role === 'MENTOR') {
+    return <Navigate to="/mentor" replace />;
+  }
+
+  return <>{children}</>;
+};
+
+// Protected route guard for Mentor
+const MentorRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-900">
+        <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (user.role !== 'MENTOR') {
+    if (user.role === 'ADMIN') return <Navigate to="/admin/dashboard" replace />;
+    return <Navigate to="/student/home" replace />;
+  }
+
   return <>{children}</>;
 };
 
@@ -123,6 +156,10 @@ const RootRedirect: React.FC = () => {
     return <Navigate to="/admin/dashboard" replace />;
   }
 
+  if (user.role === 'MENTOR') {
+    return <Navigate to="/mentor" replace />;
+  }
+
   if (user.status === 'PENDING_APPROVAL') {
     return <Navigate to="/pending-approval" replace />;
   }
@@ -163,7 +200,22 @@ export const App: React.FC = () => {
             <Route path="payments" element={<PaymentAuditPage />} />
             <Route path="live-classes" element={<LiveClassesAdminPage />} />
             <Route path="notifications" element={<NotificationsAdminPage />} />
+            <Route path="mentors" element={<AdminMentorsPage />} />
             <Route path="audit-logs" element={<AuditLogsPage />} />
+          </Route>
+
+          {/* Protected Mentor Routes under MentorLayout */}
+          <Route
+            path="/mentor"
+            element={
+              <MentorRoute>
+                <MentorLayout />
+              </MentorRoute>
+            }
+          >
+            <Route index element={<MentorDashboardPage />} />
+            <Route path="students" element={<MentorStudentsPage />} />
+            <Route path="students/:studentId" element={<MentorStudentDetailPage />} />
           </Route>
 
           {/* SECTION 6: Protected Student Routes under StudentLayout */}

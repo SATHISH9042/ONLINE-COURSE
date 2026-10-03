@@ -44,10 +44,11 @@ export async function authenticateToken(
     // Look up user from database to verify active status and token version
     const userRes = await db.query(
       `SELECT u.id, u.phone, u.email, u.role, u.status, u.token_version,
-              COALESCE(sp.full_name, ap.full_name, 'User') as full_name
+              COALESCE(sp.full_name, ap.full_name, mp.full_name, 'User') as full_name
        FROM users u
        LEFT JOIN student_profiles sp ON sp.user_id = u.id
        LEFT JOIN admin_profiles ap ON ap.user_id = u.id
+       LEFT JOIN mentor_profiles mp ON mp.user_id = u.id
        WHERE u.id = $1 AND u.deleted_at IS NULL`,
       [payload.userId]
     );

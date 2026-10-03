@@ -35,7 +35,9 @@ export const LoginPage: React.FC = () => {
       if (res.success && res.data) {
         login(res.data.accessToken, res.data.refreshToken, res.data.user);
         if (res.data.user.role === 'ADMIN') {
-          navigate('/admin/pending-students');
+          navigate('/admin/dashboard');
+        } else if (res.data.user.role === 'MENTOR') {
+          navigate('/mentor');
         } else {
           navigate('/student/dashboard');
         }
@@ -53,12 +55,15 @@ export const LoginPage: React.FC = () => {
     }
   };
 
-  const handleDemoFill = (role: 'admin' | 'pending_student') => {
+  const handleDemoFill = (role: 'admin' | 'mentor' | 'pending_student') => {
     setError(null);
     setPendingNotice(null);
     if (role === 'admin') {
       setIdentifier('admin@institute.edu');
       setPassword('Admin@123');
+    } else if (role === 'mentor') {
+      setIdentifier('mentor@institute.edu');
+      setPassword('Mentor@123');
     } else {
       setIdentifier('+919876543210');
       setPassword('Student@123');
@@ -89,20 +94,27 @@ export const LoginPage: React.FC = () => {
               <ShieldCheck className="w-3.5 h-3.5 mr-1 text-brand-600" />
               Quick Demo Fill
             </div>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-3 gap-2">
               <button
                 type="button"
                 onClick={() => handleDemoFill('admin')}
-                className="px-2.5 py-1.5 text-xs font-medium bg-white text-slate-700 hover:text-brand-700 hover:bg-brand-50 rounded-lg border border-slate-200 transition-colors text-center"
+                className="px-2 py-1.5 text-xs font-medium bg-white text-slate-700 hover:text-brand-700 hover:bg-brand-50 rounded-lg border border-slate-200 transition-colors text-center"
               >
-                Fill Admin Credentials
+                Admin
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDemoFill('mentor')}
+                className="px-2 py-1.5 text-xs font-medium bg-purple-50 text-purple-700 hover:text-purple-900 hover:bg-purple-100 rounded-lg border border-purple-200 transition-colors text-center font-semibold"
+              >
+                Mentor Demo
               </button>
               <button
                 type="button"
                 onClick={() => handleDemoFill('pending_student')}
-                className="px-2.5 py-1.5 text-xs font-medium bg-white text-slate-700 hover:text-amber-700 hover:bg-amber-50 rounded-lg border border-slate-200 transition-colors text-center"
+                className="px-2 py-1.5 text-xs font-medium bg-white text-slate-700 hover:text-amber-700 hover:bg-amber-50 rounded-lg border border-slate-200 transition-colors text-center"
               >
-                Fill Pending Student
+                Pending Student
               </button>
             </div>
           </div>

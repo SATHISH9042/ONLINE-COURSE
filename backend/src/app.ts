@@ -8,6 +8,7 @@ import adminRoutes from './routes/admin.routes';
 import studentRoutes from './routes/student.routes';
 import learningRoutes from './routes/learning.routes';
 import paymentRoutes from './routes/payment.routes';
+import mentorRoutes from './routes/mentor.routes';
 import { errorHandler } from './middleware/error.middleware';
 
 export const app = express();
@@ -152,6 +153,7 @@ app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/payments', paymentRoutes);
 app.use('/api/v1/student/learning', learningRoutes);
 app.use('/api/v1/student', studentRoutes);
+app.use('/api/v1/mentor', mentorRoutes);
 app.use('/api/v1/faqs', (req, res, next) => {
   // Shortcut to public FAQs
   const { StudentDashboardController } = require('./controllers/student.dashboard.controller');

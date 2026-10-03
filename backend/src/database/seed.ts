@@ -505,6 +505,118 @@ export async function seedDatabase() {
     }
   }
 
+  // 6. Seed Default Mentor and Student Assignments
+  const mentorPhone = '+919876500001';
+  const mentorEmail = 'mentor@institute.edu';
+  const mentorPass = 'Mentor@123';
+
+  let mentorId = '';
+  const existingMentor = await db.query(
+    'SELECT id FROM users WHERE email = $1 OR phone = $2',
+    [mentorEmail, mentorPhone]
+  );
+
+  if (existingMentor.rowCount === 0) {
+    const mentorPassHash = await hashPassword(mentorPass);
+    const mRes = await db.query(
+      `INSERT INTO users (phone, email, password_hash, role, status)
+       VALUES ($1, $2, $3, 'MENTOR', 'ACTIVE')
+       RETURNING id`,
+      [mentorPhone, mentorEmail, mentorPassHash]
+    );
+    mentorId = mRes.rows[0].id;
+
+    await db.query(
+      `INSERT INTO mentor_profiles (user_id, full_name, specialization, bio, phone)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [
+        mentorId,
+        'Prof. Vikram Anand',
+        'Full Stack Architecture & Cloud Systems',
+        'Senior Technical Lead & Academic Mentor with 10+ years of software architecture and competitive programming experience.',
+        mentorPhone,
+      ]
+    );
+
+    console.log('[Seed] Default Mentor created:');
+    console.log(`       Email:    ${mentorEmail}`);
+    console.log(`       Phone:    ${mentorPhone}`);
+    console.log(`       Password: ${mentorPass}`);
+  } else {
+    mentorId = existingMentor.rows[0].id;
+  }
+
+  // Assign students to this mentor if none assigned yet
+  const assignedCheck = await db.query(
+    'SELECT COUNT(*) as count FROM mentor_student_assignments WHERE mentor_id = $1',
+    [mentorId]
+  );
+  if (parseInt(assignedCheck.rows[0]?.count || '0', 10) === 0 && adminId) {
+    const studentsToAssignRes = await db.query(
+      "SELECT id FROM users WHERE role = 'STUDENT' AND status = 'ACTIVE' LIMIT 4"
+    );
+    if (studentsToAssignRes.rowCount && studentsToAssignRes.rowCount > 0) {
+      for (let i = 0; i < studentsToAssignRes.rows.length; i++) {
+        const stId = studentsToAssignRes.rows[i].id;
+        await db.query(
+          `INSERT INTO mentor_student_assignments (mentor_id, student_id, assigned_by_admin_id, notes)
+           VALUES ($1, $2, $3, $4)
+           ON CONFLICT (mentor_id, student_id) DO NOTHING`,
+          [
+            mentorId,
+            stId,
+            adminId,
+            i === 0
+              ? 'Fast-track full stack honors cohort student. Strong DSA background.'
+              : 'Focus on database optimization and live class participation.',
+          ]
+        );
+
+        // Seed realistic login history across past 14 days
+        const daysCount = 6 + (i * 2);
+        const now = new Date();
+        for (let d = 0; d < daysCount; d++) {
+          const logDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - d, 9 + (d % 6), 15 + (d * 7) % 40);
+          const y = logDate.getFullYear();
+          const m = String(logDate.getMonth() + 1).padStart(2, '0');
+          const day = String(logDate.getDate()).padStart(2, '0');
+          const dateStr = `${y}-${m}-${day}`;
+          await db.query(
+            `INSERT INTO user_login_history (user_id, ip_address, user_agent, login_at, login_date)
+             VALUES ($1, '192.168.1.10${i}', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)', $2, $3)`,
+            [stId, logDate.toISOString(), dateStr]
+          );
+        }
+
+        // Seed live class attendance records
+        const classesRes = await db.query('SELECT id FROM live_classes LIMIT 4');
+        for (let c = 0; c < classesRes.rows.length; c++) {
+          const clsId = classesRes.rows[c].id;
+          const attended = (c + i) % 3 !== 0; // some attended, some absent
+          await db.query(
+            `INSERT INTO live_class_attendance (live_class_id, student_id, joined_at, duration_minutes, attended)
+             VALUES ($1, $2, NOW() - INTERVAL '${c + 1} days', $3, $4)
+             ON CONFLICT (live_class_id, student_id) DO UPDATE SET attended = EXCLUDED.attended`,
+            [clsId, stId, attended ? 55 : 0, attended]
+          );
+        }
+
+        // Seed a mentor feedback note
+        await db.query(
+          `INSERT INTO mentor_student_notes (mentor_id, student_id, note, tag)
+           VALUES ($1, $2, $3, $4)`,
+          [
+            mentorId,
+            stId,
+            'Student is showing solid progress in the asynchronous JavaScript module. Encouraged them to complete the remaining coding challenges before next week.',
+            'Academic Guidance',
+          ]
+        );
+      }
+      console.log('[Seed] Assigned students, login history, and live class attendance seeded.');
+    }
+  }
+
   console.log('[Seed] Database seeding completed successfully.');
 }
 

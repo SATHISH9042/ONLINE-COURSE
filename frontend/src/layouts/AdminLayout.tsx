@@ -24,6 +24,7 @@ import {
   Sparkles,
   TrendingUp,
   DollarSign,
+  Award,
 } from 'lucide-react';
 import { adminAnalyticsService } from '../services/adminAnalyticsService';
 
@@ -68,6 +69,7 @@ export const AdminLayout: React.FC = () => {
       badgeColor: 'bg-amber-500 text-white',
     },
     { label: 'Students Directory', path: '/admin/students', icon: Users },
+    { label: 'Mentors & Assignments', path: '/admin/mentors', icon: Award },
     { label: 'Payments & QR', path: '/admin/payments', icon: CreditCard },
     { label: 'Live Masterclasses', path: '/admin/live-classes', icon: Video },
     { label: 'Broadcast Alerts', path: '/admin/notifications', icon: Bell },

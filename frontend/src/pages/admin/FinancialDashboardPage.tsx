@@ -335,8 +335,8 @@ export const FinancialDashboardPage: React.FC = () => {
           <button
             onClick={() => setShowSimulator(!showSimulator)}
             className={`inline-flex items-center px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all ${showSimulator
-                ? 'bg-brand-50 border-brand-300 text-brand-700 shadow-xs'
-                : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+              ? 'bg-brand-50 border-brand-300 text-brand-700 shadow-xs'
+              : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
               }`}
           >
             <Sliders className="w-3.5 h-3.5 mr-1.5 text-brand-600" />
@@ -589,8 +589,8 @@ export const FinancialDashboardPage: React.FC = () => {
             <button
               onClick={() => setActiveTab('monthly')}
               className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'monthly'
-                  ? 'bg-white text-slate-900 shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-white text-slate-900 shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
                 }`}
             >
               📅 Monthly Records ({monthlyRecords.length})
@@ -598,8 +598,8 @@ export const FinancialDashboardPage: React.FC = () => {
             <button
               onClick={() => setActiveTab('yearly')}
               className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'yearly'
-                  ? 'bg-white text-slate-900 shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-white text-slate-900 shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
                 }`}
             >
               📊 Yearly Overview ({yearlyRecords.length})
@@ -607,8 +607,8 @@ export const FinancialDashboardPage: React.FC = () => {
             <button
               onClick={() => setActiveTab('courses')}
               className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'courses'
-                  ? 'bg-white text-slate-900 shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-white text-slate-900 shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
                 }`}
             >
               📚 Course Subscription Inflow ({courseBreakdown.length})
@@ -616,8 +616,8 @@ export const FinancialDashboardPage: React.FC = () => {
             <button
               onClick={() => setActiveTab('methods')}
               className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'methods'
-                  ? 'bg-white text-slate-900 shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-white text-slate-900 shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
                 }`}
             >
               💳 Payment Gateways ({paymentMethodBreakdown.length})
@@ -625,8 +625,8 @@ export const FinancialDashboardPage: React.FC = () => {
             <button
               onClick={() => setActiveTab('ledger')}
               className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${activeTab === 'ledger'
-                  ? 'bg-white text-slate-900 shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-white text-slate-900 shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
                 }`}
             >
               📜 Financial Ledger ({filteredLedger.length})
@@ -721,10 +721,10 @@ export const FinancialDashboardPage: React.FC = () => {
                         <td className="py-3.5 px-4">
                           <span
                             className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${simMargin >= 80
-                                ? 'bg-emerald-100 text-emerald-800'
-                                : simMargin >= 60
-                                  ? 'bg-blue-100 text-blue-800'
-                                  : 'bg-amber-100 text-amber-800'
+                              ? 'bg-emerald-100 text-emerald-800'
+                              : simMargin >= 60
+                                ? 'bg-blue-100 text-blue-800'
+                                : 'bg-amber-100 text-amber-800'
                               }`}
                           >
                             {simMargin}%
@@ -1083,10 +1083,10 @@ export const FinancialDashboardPage: React.FC = () => {
                         <td className="py-3.5 px-4 text-right">
                           <span
                             className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-extrabold ${tx.status === 'SUCCESS' || tx.status === 'MANUALLY_VERIFIED'
-                                ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
-                                : tx.status === 'PENDING'
-                                  ? 'bg-amber-100 text-amber-800 border border-amber-200'
-                                  : 'bg-rose-100 text-rose-800 border border-rose-200'
+                              ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                              : tx.status === 'PENDING'
+                                ? 'bg-amber-100 text-amber-800 border border-amber-200'
+                                : 'bg-rose-100 text-rose-800 border border-rose-200'
                               }`}
                           >
                             {tx.status}

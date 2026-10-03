@@ -107,10 +107,11 @@ export class AuthController {
       const userRes = await db.query(
         `SELECT u.id, u.phone, u.email, u.password_hash, u.role, u.status, u.token_version,
                 u.failed_login_attempts, u.locked_until,
-                COALESCE(sp.full_name, ap.full_name, 'User') as full_name
+                COALESCE(sp.full_name, ap.full_name, mp.full_name, 'User') as full_name
          FROM users u
          LEFT JOIN student_profiles sp ON sp.user_id = u.id
          LEFT JOIN admin_profiles ap ON ap.user_id = u.id
+         LEFT JOIN mentor_profiles mp ON mp.user_id = u.id
          WHERE (u.phone = $1 OR u.phone = $2 OR (u.email IS NOT NULL AND LOWER(u.email) = LOWER($1)))
            AND u.deleted_at IS NULL`,
         [identifier, normalizedPhone]
@@ -247,6 +248,15 @@ export class AuthController {
         [user.id, refreshTokenHash, expiresAt.toISOString()]
       );
 
+      // Record login history
+      const clientIp = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.socket.remoteAddress || '127.0.0.1';
+      const userAgent = (req.headers['user-agent'] as string) || 'Unknown';
+      db.query(
+        `INSERT INTO user_login_history (user_id, ip_address, user_agent, login_at, login_date)
+         VALUES ($1, $2, $3, NOW(), CURRENT_DATE)`,
+        [user.id, clientIp, userAgent]
+      ).catch((err: any) => console.error('Failed to log login history:', err));
+
       res.status(200).json({
         success: true,
         message: 'Login successful.',
@@ -276,11 +286,12 @@ export class AuthController {
       const tokenRes = await db.query(
         `SELECT rt.id, rt.user_id, rt.expires_at, rt.is_revoked,
                 u.phone, u.email, u.role, u.status, u.token_version,
-                COALESCE(sp.full_name, ap.full_name, 'User') as full_name
+                COALESCE(sp.full_name, ap.full_name, mp.full_name, 'User') as full_name
          FROM refresh_tokens rt
          JOIN users u ON u.id = rt.user_id
          LEFT JOIN student_profiles sp ON sp.user_id = u.id
          LEFT JOIN admin_profiles ap ON ap.user_id = u.id
+         LEFT JOIN mentor_profiles mp ON mp.user_id = u.id
          WHERE rt.token_hash = $1 AND u.deleted_at IS NULL`,
         [tokenHash]
       );
@@ -377,11 +388,16 @@ export class AuthController {
 
       const userRes = await db.query(
         `SELECT u.id, u.phone, u.email, u.role, u.status, u.created_at,
-                sp.full_name, sp.avatar_url, sp.bio, sp.city, sp.state,
-                ap.department
+                COALESCE(sp.full_name, ap.full_name, mp.full_name, 'User') as full_name,
+                COALESCE(sp.avatar_url, mp.avatar_url) as avatar_url,
+                COALESCE(sp.bio, mp.bio) as bio,
+                sp.city, sp.state,
+                ap.department,
+                mp.specialization
          FROM users u
          LEFT JOIN student_profiles sp ON sp.user_id = u.id
          LEFT JOIN admin_profiles ap ON ap.user_id = u.id
+         LEFT JOIN mentor_profiles mp ON mp.user_id = u.id
          WHERE u.id = $1`,
         [req.user.id]
       );
@@ -411,6 +427,7 @@ export class AuthController {
           city: profile.city,
           state: profile.state,
           department: profile.department,
+          specialization: profile.specialization,
           registeredAt: profile.created_at,
         },
       });

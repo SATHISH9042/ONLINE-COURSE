@@ -9,7 +9,12 @@
 -- 1. ENUMERATIONS
 -- -----------------------------------------------------------------------------
 DO $$ BEGIN
-    CREATE TYPE user_role AS ENUM ('STUDENT', 'ADMIN');
+    CREATE TYPE user_role AS ENUM ('STUDENT', 'ADMIN', 'MENTOR');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+DO $$ BEGIN
+    ALTER TYPE user_role ADD VALUE IF NOT EXISTS 'MENTOR';
 EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;
@@ -108,6 +113,70 @@ CREATE TABLE IF NOT EXISTS admin_profiles (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT uq_admin_profiles_user UNIQUE (user_id)
 );
+
+-- Mentor Profiles
+CREATE TABLE IF NOT EXISTS mentor_profiles (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    full_name VARCHAR(150) NOT NULL,
+    specialization VARCHAR(150) DEFAULT 'Full Stack Engineering',
+    phone VARCHAR(20),
+    bio TEXT,
+    avatar_url TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_mentor_profiles_user UNIQUE (user_id)
+);
+CREATE INDEX IF NOT EXISTS idx_mentor_profiles_user ON mentor_profiles(user_id);
+
+-- Mentor-Student Assignments (Only Admin can assign)
+CREATE TABLE IF NOT EXISTS mentor_student_assignments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    mentor_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    student_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    assigned_by_admin_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    notes TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_mentor_student UNIQUE (mentor_id, student_id)
+);
+CREATE INDEX IF NOT EXISTS idx_mentor_assignments_mentor ON mentor_student_assignments(mentor_id);
+CREATE INDEX IF NOT EXISTS idx_mentor_assignments_student ON mentor_student_assignments(student_id);
+
+-- Mentor Guidance, Notes & Feedback
+CREATE TABLE IF NOT EXISTS mentor_student_notes (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    mentor_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    student_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    note TEXT NOT NULL,
+    tag VARCHAR(50) DEFAULT 'GENERAL',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_mentor_notes ON mentor_student_notes(mentor_id, student_id);
+
+-- Student Daily Login History (Tracking Login Days and Active Streaks)
+CREATE TABLE IF NOT EXISTS user_login_history (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    ip_address VARCHAR(50),
+    user_agent TEXT,
+    login_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    login_date DATE DEFAULT CURRENT_DATE
+);
+CREATE INDEX IF NOT EXISTS idx_login_history_user ON user_login_history(user_id, login_date);
+
+-- Live Class Student Attendance (Whether student attended or not)
+CREATE TABLE IF NOT EXISTS live_class_attendance (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    live_class_id UUID NOT NULL REFERENCES live_classes(id) ON DELETE CASCADE,
+    student_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    joined_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    duration_minutes INTEGER DEFAULT 45,
+    attended BOOLEAN DEFAULT TRUE,
+    CONSTRAINT uq_class_student_attendance UNIQUE (live_class_id, student_id)
+);
+CREATE INDEX IF NOT EXISTS idx_live_attendance_student ON live_class_attendance(student_id);
+CREATE INDEX IF NOT EXISTS idx_live_attendance_class ON live_class_attendance(live_class_id);
 
 -- Refresh Tokens
 CREATE TABLE IF NOT EXISTS refresh_tokens (

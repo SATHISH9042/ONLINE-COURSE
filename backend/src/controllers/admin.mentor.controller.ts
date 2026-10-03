@@ -37,31 +37,82 @@ export class AdminMentorController {
     try {
       const { fullName, email, phone, password, specialization, bio } = req.body;
 
-      if (!fullName || !email || !password || !phone) {
+      if (!fullName || !fullName.trim()) {
         res.status(400).json({
           success: false,
           code: 'VALIDATION_ERROR',
-          message: 'Full name, email, phone, and password are required.',
+          message: 'Full name is required.',
         });
         return;
       }
 
-      let normalizedPhone = phone.trim();
-      if (!normalizedPhone.startsWith('+') && /^\d{10}$/.test(normalizedPhone)) {
-        normalizedPhone = `+91${normalizedPhone}`;
+      if (!email || !email.trim()) {
+        res.status(400).json({
+          success: false,
+          code: 'VALIDATION_ERROR',
+          message: 'Email address is required.',
+        });
+        return;
       }
+
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email.trim())) {
+        res.status(400).json({
+          success: false,
+          code: 'VALIDATION_ERROR',
+          message: 'Please provide a valid email address (e.g. mentor@institute.edu).',
+        });
+        return;
+      }
+
+      if (!phone || !phone.trim()) {
+        res.status(400).json({
+          success: false,
+          code: 'VALIDATION_ERROR',
+          message: 'Phone number is required.',
+        });
+        return;
+      }
+
+      if (!password || password.length < 6) {
+        res.status(400).json({
+          success: false,
+          code: 'VALIDATION_ERROR',
+          message: 'Password must be at least 6 characters long.',
+        });
+        return;
+      }
+
+      // Robust phone normalization: strip all whitespace, hyphens, brackets
+      let cleanPhone = phone.trim().replace(/[\s\-()]/g, '');
+      let normalizedPhone = cleanPhone;
+      if (!normalizedPhone.startsWith('+')) {
+        if (/^\d{10}$/.test(normalizedPhone)) {
+          normalizedPhone = `+91${normalizedPhone}`;
+        } else {
+          normalizedPhone = `+${normalizedPhone}`;
+        }
+      }
+
+      const cleanEmail = email.trim().toLowerCase();
 
       // Check existing email or phone
       const existingUser = await db.query(
-        `SELECT id FROM users WHERE email = $1 OR phone = $2`,
-        [email.trim().toLowerCase(), normalizedPhone]
+        `SELECT id, email, phone FROM users 
+         WHERE (LOWER(email) = LOWER($1) OR phone = $2 OR phone = $3)
+           AND deleted_at IS NULL`,
+        [cleanEmail, normalizedPhone, cleanPhone]
       );
 
       if (existingUser.rowCount && existingUser.rowCount > 0) {
+        const found = existingUser.rows[0];
+        const isEmailMatch = found.email && found.email.toLowerCase() === cleanEmail;
         res.status(409).json({
           success: false,
           code: 'USER_EXISTS',
-          message: 'A user with this email or phone number already exists.',
+          message: isEmailMatch
+            ? `A user with email '${cleanEmail}' already exists. Please use a different email.`
+            : `A user with phone number '${phone.trim()}' already exists. Please use a different phone number.`,
         });
         return;
       }
@@ -75,33 +126,38 @@ export class AdminMentorController {
         `INSERT INTO users (phone, email, password_hash, role, status)
          VALUES ($1, $2, $3, 'MENTOR', 'ACTIVE')
          RETURNING id`,
-        [normalizedPhone, email.trim().toLowerCase(), passwordHash]
+        [normalizedPhone, cleanEmail, passwordHash]
       );
       const mentorUserId = userInsertRes.rows[0].id;
 
       await db.query(
         `INSERT INTO mentor_profiles (user_id, full_name, specialization, bio, phone)
          VALUES ($1, $2, $3, $4, $5)`,
-        [mentorUserId, fullName.trim(), specialization?.trim() || null, bio?.trim() || null, normalizedPhone]
+        [mentorUserId, fullName.trim(), specialization?.trim() || 'General Mentorship', bio?.trim() || null, normalizedPhone]
       );
 
       await db.query('COMMIT');
 
       res.status(201).json({
         success: true,
-        message: 'Mentor created successfully.',
+        message: `Mentor ${fullName.trim()} registered successfully.`,
         data: {
           id: mentorUserId,
           fullName: fullName.trim(),
-          email: email.trim().toLowerCase(),
+          email: cleanEmail,
           phone: normalizedPhone,
           role: 'MENTOR',
-          specialization: specialization?.trim() || null,
+          specialization: specialization?.trim() || 'General Mentorship',
         },
       });
-    } catch (err) {
+    } catch (err: any) {
       await db.query('ROLLBACK').catch(() => {});
-      next(err);
+      console.error('[AdminMentorController.createMentor] Error:', err);
+      res.status(500).json({
+        success: false,
+        code: 'CREATE_MENTOR_FAILED',
+        message: err.message || 'Failed to create mentor account due to database error.',
+      });
     }
   }
 

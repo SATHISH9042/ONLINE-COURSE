@@ -33,7 +33,9 @@ export const AdminMentorsPage: React.FC = () => {
 
   // Modals state
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [modalError, setModalError] = useState<string | null>(null);
   const [showAssignModal, setShowAssignModal] = useState(false);
+  const [assignModalError, setAssignModalError] = useState<string | null>(null);
   const [selectedMentorForAssign, setSelectedMentorForAssign] = useState<AdminMentorItem | null>(null);
   const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>([]);
   const [assignmentNotes, setAssignmentNotes] = useState('');
@@ -78,18 +80,25 @@ export const AdminMentorsPage: React.FC = () => {
 
   const handleCreateMentor = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMentor.fullName || !newMentor.email || !newMentor.password || !newMentor.phone) {
-      alert('Please fill out all required fields.');
+    setModalError(null);
+
+    if (!newMentor.fullName.trim() || !newMentor.email.trim() || !newMentor.password || !newMentor.phone.trim()) {
+      setModalError('Please fill out all required fields (Full name, Email, Phone, Password).');
+      return;
+    }
+
+    if (newMentor.password.length < 6) {
+      setModalError('Initial password must be at least 6 characters long.');
       return;
     }
 
     setCreating(true);
-    setError(null);
     try {
       const res = await mentorService.createMentor(newMentor);
       if (res.success) {
         setSuccessMsg(`Mentor ${newMentor.fullName} created successfully.`);
         setShowCreateModal(false);
+        setModalError(null);
         setNewMentor({
           fullName: '',
           email: '',
@@ -101,13 +110,26 @@ export const AdminMentorsPage: React.FC = () => {
         loadData();
         setTimeout(() => setSuccessMsg(null), 4000);
       } else {
-        setError(res.message || 'Failed to create mentor.');
+        setModalError(res.message || 'Failed to create mentor.');
       }
     } catch (err: any) {
-      setError(err.message || 'Network error.');
+      setModalError(err.message || 'Network error connecting to API.');
     } finally {
       setCreating(false);
     }
+  };
+
+  const handleFillSampleMentor = () => {
+    const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+    setNewMentor({
+      fullName: `Prof. Sneha Kulkarni`,
+      email: `sneha.mentor${randomSuffix}@institute.edu`,
+      phone: `+9198765${randomSuffix}`,
+      password: 'Mentor@123',
+      specialization: 'Full Stack Architecture & Cloud Systems',
+      bio: 'Senior Technical Lead & Academic Mentor with 10+ years of software engineering experience.',
+    });
+    setModalError(null);
   };
 
   const handleOpenAssignModal = (mentor: AdminMentorItem) => {
@@ -116,17 +138,18 @@ export const AdminMentorsPage: React.FC = () => {
     const currentAssigned = students.filter((s) => s.mentor_id === mentor.id).map((s) => s.id);
     setSelectedStudentIds(currentAssigned);
     setAssignmentNotes('');
+    setAssignModalError(null);
     setShowAssignModal(true);
   };
 
   const handleAssignStudents = async () => {
+    setAssignModalError(null);
     if (!selectedMentorForAssign || selectedStudentIds.length === 0) {
-      alert('Please select at least one student to assign.');
+      setAssignModalError('Please select at least one student to assign.');
       return;
     }
 
     setAssigning(true);
-    setError(null);
     try {
       const res = await mentorService.assignStudents(
         selectedMentorForAssign.id,
@@ -137,13 +160,14 @@ export const AdminMentorsPage: React.FC = () => {
       if (res.success) {
         setSuccessMsg(`Students successfully assigned to ${selectedMentorForAssign.full_name}.`);
         setShowAssignModal(false);
+        setAssignModalError(null);
         loadData();
         setTimeout(() => setSuccessMsg(null), 4000);
       } else {
-        setError(res.message || 'Failed to assign students.');
+        setAssignModalError(res.message || 'Failed to assign students.');
       }
     } catch (err: any) {
-      setError(err.message || 'Error assigning students.');
+      setAssignModalError(err.message || 'Error assigning students.');
     } finally {
       setAssigning(false);
     }
@@ -460,10 +484,35 @@ export const AdminMentorsPage: React.FC = () => {
                 <span>Create New Mentor Account</span>
               </h3>
               <button
-                onClick={() => setShowCreateModal(false)}
+                onClick={() => {
+                  setShowCreateModal(false);
+                  setModalError(null);
+                }}
                 className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700"
               >
                 <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {modalError && (
+              <div className="p-3.5 bg-rose-950/80 border border-rose-700/80 rounded-xl text-rose-200 text-xs flex items-start space-x-2.5 shadow-md">
+                <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+                <div className="space-y-0.5">
+                  <p className="font-semibold text-rose-200">Unable to create mentor</p>
+                  <p className="text-rose-300">{modalError}</p>
+                </div>
+              </div>
+            )}
+
+            <div className="flex items-center justify-between p-2.5 rounded-xl bg-purple-950/30 border border-purple-800/40">
+              <span className="text-[11px] text-purple-300">Need sample credentials for testing?</span>
+              <button
+                type="button"
+                onClick={handleFillSampleMentor}
+                className="inline-flex items-center space-x-1.5 px-3 py-1 bg-purple-600/80 hover:bg-purple-600 text-white rounded-lg text-[11px] font-semibold transition-all shadow-sm"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Auto-Fill Sample Faculty</span>
               </button>
             </div>
 
@@ -575,12 +624,25 @@ export const AdminMentorsPage: React.FC = () => {
                 </p>
               </div>
               <button
-                onClick={() => setShowAssignModal(false)}
+                onClick={() => {
+                  setShowAssignModal(false);
+                  setAssignModalError(null);
+                }}
                 className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
+
+            {assignModalError && (
+              <div className="p-3.5 bg-rose-950/80 border border-rose-700/80 rounded-xl text-rose-200 text-xs flex items-start space-x-2.5 shadow-md">
+                <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+                <div className="space-y-0.5">
+                  <p className="font-semibold text-rose-200">Assignment Error</p>
+                  <p className="text-rose-300">{assignModalError}</p>
+                </div>
+              </div>
+            )}
 
             <div className="space-y-3 text-xs">
               <div>

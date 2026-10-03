@@ -1,7 +1,19 @@
 import { ApiResponse } from '../types';
 
-const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-export const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || (isLocal ? 'http://localhost:5001' : 'https://online-course-47df.onrender.com');
+const isLocal =
+  typeof window !== 'undefined' &&
+  (window.location.hostname === 'localhost' ||
+    window.location.hostname === '127.0.0.1' ||
+    window.location.hostname === '0.0.0.0' ||
+    window.location.hostname.endsWith('.local') ||
+    window.location.hostname.startsWith('192.168.') ||
+    window.location.hostname.startsWith('10.') ||
+    window.location.port === '5173' ||
+    window.location.port === '4173' ||
+    window.location.port === '3000');
+export const BACKEND_URL =
+  import.meta.env.VITE_BACKEND_URL ||
+  (isLocal ? 'http://localhost:5001' : 'https://online-course-47df.onrender.com');
 export const API_BASE = import.meta.env.VITE_API_URL || `${BACKEND_URL}/api/v1`;
 
 class ApiClient {
